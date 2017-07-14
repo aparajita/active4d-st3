@@ -1,4 +1,4 @@
-// SYNTAX TEST "Packages/User/Active4D/Syntaxes/HTML (Active4D).sublime-syntax"
+// SYNTAX TEST "Packages/Active4D/Syntaxes/HTML (Active4D).sublime-syntax"
 
 <html>
 
@@ -16,6 +16,7 @@
 // ^ comment.block
 // <- punctuation.definition.comment.begin
 //                 ^ punctuation.definition.comment.end
+
 
 /***********************
     strings
@@ -58,6 +59,8 @@
 //  ^^^^^^^^^^^^^^ string.interpolated.a4d
 //  ^ punctuation.definition.string.begin.a4d
 //               ^ punctuation.definition.string.end.a4d
+
+
 
 // Interpolated strings can take a character ref suffix
 'foo'[[$foo + 7]]
