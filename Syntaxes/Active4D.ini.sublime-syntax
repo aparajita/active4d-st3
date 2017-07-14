@@ -1,0 +1,77 @@
+%YAML 1.2
+---
+name: Active4D.ini
+file_extensions:
+  - ini
+scope: text.config.a4d-ini
+
+variables:
+  identifier_trailer: '[[[:alpha:]] ]*[[:alpha:]]'
+  b: '(?!{{identifier_trailer}})'  # equivalent for \b for the right side of an option name
+  identifier: '[[:alpha:]](?:{{identifier_trailer}})?{{b}}'
+
+contexts:
+  main:
+    - include: comments
+
+    - match: '^\s*(?i)(s(?:e(?:ssion (?:cookie (?:(?:secur|nam)e|domain|path)|purge interval|var name|handler|timeout)|rve nonexecutables)|afe (?:script|doc) dirs|cript timeout)|r(?:e(?:quest log (?:backup count|rollover)|fresh interval|ceive timeout)|oot)|a(?:uto (?:re(?:late (?:many|one)|fresh libs)|create vars)|llowed methods)|(?:(?:http error|fusebox) pag|d(?:efault pag|octyp)|max request siz)e|e(?:x(?:ecutable extension|pire)s|(?:ncrypted sourc|rror pag)e)|l(?:o(?:g (?:requests|level)|cale)|ib (?:extension|dirs))|p(?:ar(?:se json request|ameter mode)|latform charset)|(?:use session(?: cookie)?|nonexecutable expire)s|c(?:lient is web server|ache control)|output (?:encoding|charset)){{b}}'
+      captures:
+        1: keyword.other.config.a4d-ini
+      push: after-keyword
+
+    - match: '{{identifier}}'
+      scope: invalid.illegal.unexpected-token.a4d-ini
+
+  after-keyword:
+    - match: '='
+      scope: punctuation.separator.key-value.config.a4d-ini
+      set:
+        - include: comments
+        - include: number
+        - include: constants
+
+        - match: $
+          pop: true
+
+    - match: \n
+      scope: invalid.illegal.unexpected-eol.a4d-ini
+      pop: true
+
+    - match: '\S+'
+      scope: invalid.illegal.unexpected-token.a4d-ini
+      pop: true
+
+  #
+  # comments
+  #
+  comments:
+    - include: block-comment
+    - include: line-comment
+
+  block-comment:
+    - match: /\*
+      scope: punctuation.definition.comment.begin.a4d-ini
+      push:
+        - meta_scope: comment.block.a4d-ini
+
+        - match: \*/
+          scope: punctuation.definition.comment.end.a4d-ini
+          pop: true
+
+  line-comment:
+    - match: //
+      scope: punctuation.definition.comment.a4d-ini
+      push:
+        - meta_scope: comment.line.a4d-ini
+
+        # Consume the newline so that completions aren't shown at the end of the line
+        - match: \n
+          pop: true
+
+  number:
+    - match: '-?(?:[.,]|\d+[.,])*\d+(?:[.,]\d+)?(?=(?:[ ]|//|$))'
+      scope: constant.numeric.a4d-ini
+
+  constants:
+    - match: '\b(?i:true|false|yes|no)\b'
+      scope: constant.language.a4d-ini

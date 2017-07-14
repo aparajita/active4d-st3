@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0">
+<dict>
+    <key>name</key>
+    <string>Indentation Rules</string>
+    <key>scope</key>
+    <string>source.a4d - comment</string>
+    <key>settings</key>
+    <dict>
+        <key>decreaseIndentPattern</key>
+        <string>^\s*(?i:end (?i:if|for(?: each)?|case|while|method|library)|else|until)(?:\s|$)</string>
+        <key>increaseIndentPattern</key>
+        <string>(^\s*((?i:method\s*['"][^'"]+['"])(?:[\s(]|$)|(?i:if[\s(]|else|for(?: each)?[\s(]|case of(?:\s|$)|:[\s(]|while[\s(]|repeat(?:\s|$))))</string>
+    </dict>
+</dict>
+</plist>

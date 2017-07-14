@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0">
+<dict>
+    <key>scope</key>
+    <string>source.a4d</string>
+    <key>settings</key>
+    <dict>
+        <key>cancelCompletion</key>
+        <string>(^\s*(?:if|else|for(?: each)?|case|while|repeat|end (?:if|case|while|for(?: each)?)?|until))$</string>
+    </dict>
+</dict>
+</plist>

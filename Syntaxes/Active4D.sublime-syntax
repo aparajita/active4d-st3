@@ -1,0 +1,1766 @@
+%YAML 1.2
+---
+name: Active4D
+hidden: true
+scope: source.a4d
+
+variables:
+  line_comment_begin: '//'
+
+  # What ends a statement
+  statement_terminators: '(?:$|{{line_comment_begin}}|%>)'
+  end_of_statement: '(?=[\t ]*{{statement_terminators}})'
+
+  comparison_operators: '(?:\#|>=?|<=?)'
+  regex_comparison_operators: '(?:[!=#]?~)'
+  arithmetic_operators: '[-+*/\\^]'
+  bitwise_operators: '(?:\^\||<<|>>|\?\+|\?\-|\?\?)'
+  assignment_operators: '(?:[-+*%/\\^|&]=|::?=|<<=|>>=)'
+  format_operators: '%%'
+  multiple_use_operators: (?:=|\&|\||%|[+/]=)
+
+  # The operators that can legally appear after a number
+  operators_after_number: '{{bitwise_operators}}|{{comparison_operators}}|{{arithmetic_operators}}|{{multiple_use_operators}}'
+
+  # Scientific notation
+  e: '(?:e-?\d+)?'
+
+  decimal_number: '(?:[.,]|\d+[.,])*\d+(?:[.,]\d+)?{{e}}'
+  hex_number: '0[xX][[:xdigit:]]+'
+  literal_number_terminator: '(?=[ ;)\]`]|{{statement_terminators}}|{{operators_after_number}})'
+  literal_number: '(?:({{hex_number}})|({{decimal_number}})){{literal_number_terminator}}'
+
+  # Identifiers can use any currency symbol *except* $, so we can't use \p{Sc} to match,
+  # we need to specify all of the currency symbols except for $.
+  currency: '€¥¢£₽₨₩฿₺₮₱₭₴₦৲৳﷼₹₲₪₡₫₵₢₸₤₳₥₠₣₰₧₯₶'
+
+  # An identifier may start with any Unicode character with properties:
+  #   Letter
+  #   Letter number
+  #   Connector punctuation
+  #   Currency symbol (except '$')
+  identifier_start: '\p{L}\p{Nl}\p{Pc}{{currency}}'
+
+  # Identifier non-start characters may be any Unicode character with properties:
+  #   Letter
+  #   Letter number
+  #   Connector punctuation
+  #   Decimal number
+  #   Non-spacing mark
+  #   Currency symbol (except '$')
+  identifier_char: '\p{L}\p{Nl}\p{Pc}\p{Nd}\p{Mn}{{currency}}'
+
+  # Identifiers may contain spaces, so we have to match a start character,
+  # potentially alone, followed by zero or more identifier_char or space,
+  # followed by an identifier_char.
+  identifier_trailer: '[{{identifier_char}} ]*[{{identifier_char}}]'
+  irb: '(?!{{identifier_trailer}})'  # equivalent for \b for the right side of an identifier
+  identifier: '[{{identifier_start}}](?:{{identifier_trailer}})?{{irb}}'
+
+  local_var: '\${{identifier}}'
+  ip_var: '<>{{identifier}}'
+  table_reference: '(\[)({{identifier}})(\])'
+  field_reference: '{{table_reference}}({{identifier}})'
+
+  reserved_words: '(?:\b(?i:e(?:nd (?:for(?: each)?|library|while|if)|lse|xit)|c(?:ontinue|ase of)|re(?:peat|turn)|for(?: each)?|library|break|until|while|if)|:\s*\(){{irb}}'
+  language_constants: '\b(?i:true|false){{irb}}'
+  support_constants1: '(?i)(?:a(?:4d (?:re(?:quest (?:host (?:addr|port)|remote addr|secure)|sponse (?:mod (?:dat|tim)e|version|status|path)|gex split (?:capture delims|no empty))|l(?:icense t(?:ype (?:de(?:ployment|veloper)|(?:spec|tr)ial|oem)|imed out)|og (?:(?:(?:execution|critical) error|user message)s|off))|e(?:rror type (?:(?:databas|runtim)e|unexpected|critical|syntax|io)|ncoding (?:a(?:mpersand|ll)|(?:quote|tag)s|extended|html|none))|charset (?:iso latin1|shift_jis|gb2312|none|utf8|mac|win)|parameter mode (?:separate|query|form)|not executable)|(?:rray 2|borte)d|ck ascii code|t sign|ugust|pril)|p(?:r(?:ot(?:ected resource (?:mask|bit)|ocol (?:xonxoff|none|dtr))|eloaded resource (?:mask|bit))|o(?:sition from (?:(?:curren|star)t|end)|wer(?:pc (?:60[134]|g3)| macintosh)|inter array)|a(?:rity (?:even|none|odd)|ge (?:down|up) key|scal string|used)|c (?:double real format|byte ordering)|urgeable resource (?:mask|bit)|i(?:cture (?:array|data))?|e(?:ntium|riod))|t(?:cp (?:r(?:emote (?:login|exec|cmd)|ad(?:acct|ius)|outer)|s(?:(?:nm(?:ptra)?|mt)p|un rpc)|f(?:tp (?:control|data)|inger)|n(?:t(?:alk|p)|ickname|ntp)|p(?:m(?:cp|d)|rinter|op3)|k(?:erberos|login)|t(?:elnet|alk|ftp)|uucp(?: rlogin)?|authentication|http www|gopher|imap3|dns)|ext (?:with(?:out)? length|array|data)|(?:hur|ue)sday|ab(?: key)?)|h(?:t(?:tp status (?:(?:method not allow|(?:accep|crea)t|unauthoriz)ed|no(?:t (?:(?:implement|modifi)e|foun)d| content)|request (?:entity too large|timeout)|se(?:rvice unavailable|e other)|internal server error|fo(?:rbidden|und)|bad request|ok)| ascii code)|o(?:ur min(?: sec)?|me key)|h mm(?: (?:am pm|ss))?|idden modal dialog|elp key)|i(?:s (?:(?:(?:not compress|undefin)e|alpha fiel)d|s(?:tring var|ubtable)|p(?:icture|ointer)|b(?:oolean|lob)|t(?:ext|ime)|integer|longint|date|real)|nt(?:o (?:(?:current|named) selection|variable|set)|e(?:ger array|l [34]86)))|s(?:p(?:eed (?:(?:57|9)?6|1(?:9?2|8)|36?|24|48|72)00|(?: ascii cod|ac)e)|y(?:stem heap resource (?:mask|bit)|n ascii code)|t(?:x ascii code|ring array)|u(?:b ascii code|nday)|(?:oh?|i) ascii code|eptember|aturday)|e(?:n(?:q ascii code|ter(?: key)?|d key)|x(?:tended real format|ecuting)|sc(?:ape(?: key)?| ascii code)|(?:t[bx]|ot|m) ascii code| number)|n(?:a(?:tive (?:byte ordering|real format)|k ascii code)|o(?: (?:such data in clipboa|current reco)rd|vember)|ul ascii code|ew record|bsp)|d(?:o(?:es not exist|wn arrow key|uble quote)|e(?:l(?: ascii code|ayed)|cember|gree)|(?:c[1234]|le) ascii code|at(?:a bits 5|e array))|c(?:(?:ompact compression m|r ascii c)ode|a(?:rriage return|n ascii code)|hanged resource (?:mask|bit)| string)|m(?:a(?:c(?:intosh (?:double real format|byte ordering|68k)|os (?:printer|serial) port)|rch|y)|onday)|f(?:(?:(?:[23456789]|1[012345]?) ke|ebruar|rida)y|(?:ast compression m|[fs] ascii c)ode)|l(?:o(?:cked resource (?:mask|bit)|ngint array)|eft arrow key|f ascii code|ine feed)|w(?:aiting for (?:in(?:ternal flag|put output)|user event)|ednesday|indows)|r(?:(?:e(?:al arra|turn ke)|ight arrow ke)y|s ascii code|adian)|b(?:(?:el|s) ascii code|ackspace(?: key)?|oolean array)|(?:(?:gs|vt) ascii cod|quot)e|o(?:ther g3 and above|ctober)|u(?:s ascii code|p arrow key)|j(?:u(?:ly|ne)|anuary))'
+  support_constants2: '(?i)(?:i(?:s(?:o (?:l1 (?:c(?:ap (?:a(?: (?:(?:acut|grav|tild)e|circumflex|umlaut|ring)|e ligature)|e(?: (?:(?:acut|grav)e|circumflex|umlaut)|th icelandic)|o (?:(?:acut|grav|tild)e|circumflex|umlaut|slash)|i (?:(?:acut|grav)e|circumflex|umlaut)|u (?:(?:acut|grav)e|circumflex|umlaut)|(?:n tild|y acut)e|thorn icelandic|c cedilla)| cedilla|opyright)|a(?: (?:(?:acut|grav|tild)e|circumflex|umlaut|ring)|e ligature|mpersand)|e(?: (?:(?:acut|grav)e|circumflex|umlaut)|th icelandic)|o (?:(?:acut|grav|tild)e|circumflex|umlaut|slash)|(?:(?:greater|less) th|sharp s germ)an|i (?:(?:acut|grav)e|circumflex|umlaut)|u (?:(?:acut|grav)e|circumflex|umlaut)|y (?:umlaut|acute)|thorn icelandic|quotation mark|registered|n tilde)|(?:dat(?:e tim)?|tim)e)| a d(?:irectory|ocument))|n(?:t(?:e(?:rnal date (?:short(?: special)?|abbreviated|long)|l compatible)|o windows log events)|dex(?: compacting|ing process)|formation message|vert objects)|p address to listen|talian lira|rish pound)|s(?:ystem(?: (?:time (?:long(?: (?:abbreviated|pattern))?|short(?: pattern)?|medium pattern|[ap]m label)|date (?:short(?: pattern)?|long(?: pattern)?|medium pattern|abbreviated)|win)|32 win)?|t(?:a(?:rtup items_(?:user|all)|ndard btree index)|op bits (?:one(?: and a half)?|two)|ructure configuration)|e(?:q (?:(?:distinct values|query select|order) ratio|access optimization)|rial port manager)|cale(?:d to fit(?: prop(?: centered|ortional))?)?|hort(?: date (?:month|year|day) position)?|p(?:eed (?:1152|2304)00|anish peseta)|uperimposition)|4(?:d (?:client(?: (?:s(?:oap license|cheduler)|database folder|web license|timeout))?|s(?:erver(?: (?:log recording|scheduler|timeout))?|oap license)|f(?:or (?:(?:postgre|my)sql|sybase|ado|oci) license|irst)|runtime (?:volume license|interpreted|single user)|(?:(?:dra|vie)w|w(?:rite|eb)|odbc pro) license)|th dimension(?: scheduler)?)|m(?:a(?:c (?:shutdown items_(?:user|all)|c(?:ontrol panels| string)|text with(?:out)? length|(?:extension|o)s|pascal string)|x(?:i(?:mum web (?:requests size|process)|nt)| concurrent web processes|textlen(?:beforev11)?|long)|nual)|m (?:dd yyyy(?: forced)?|ss)|in(?:imum web process| sec)|onth day year|ultiple files)|c(?:l(?:ient (?:m(?:ax(?: (?:concurrent web proc|web requests size)|imum web process)|inimum web process)|(?:(?:server|https) )?port id|ip address to listen|web log recording|character set)|uster btree index)|r(?:eated from (?:menu command|user mode)|op)|ache (?:writing mode|manager)|urrency symbol|haracter set)|d(?:e(?:s(?:cription in (?:text|xml) format|ign process|ktop win)|bug log recording|fault index type|cimal separator|utsche mark|mo version)|at(?:a(?:base (?:folder(?: unix syntax)?|cache size)| bits [678])|e separator)|o not modify)|w(?:e(?:b (?:process (?:with(?: no)? contex|on 4d clien)t|conversion mode|log recording)|dd signature)|indows (?:sound|video|midi) document|(?:arning messag|rite mod)e)|a(?:pple (?:or start menu_(?:user|all)|event manager)|u(?:strian schilling|tomatic)|bbr(?: month day|eviated)|ctive 4d folder|lias selection)|p(?:r(?:eferences or profiles_(?:user|all)|ogram files win)|o(?:rt(?:uguese escudo| id)|wer pc)|ackage (?:selectio|ope)n|icture document)|t(?:(?:(?:housand|ime) separato|able sequence numbe)r|r(?:uncated(?: non)? centered|anslate)|ext document|cp_nodelay)|f(?:a(?:de to grey scale|vorites win)|lip (?:horizont|vertic)ally|innish markka|rench franc|ull version|onts)|u(?:se(?:r or custom menus process| sheet window)|tf8 (?:text with(?:out)? length|c string))|e(?:x(?:t(?:ernal task|ras folder)|ecute on server process)|rror message|vent manager|uro)|n(?:o(?: (?:such data in pasteboard|relation)|ne)|etherlands guilder|bsp ascii code)|qt (?:(?:(?:compact )?vide|phot)o|animation|graphics|raw) compressor|re(?:a(?:d (?:and writ|mod)e|l display precision)|plicated|set)|b(?:lank if null (?:dat|tim)e|elgian franc)|o(?:ther (?:user|4d) process|n background)|h(?:orizontal concatenation|ttps port id)|l(?:uxembourg franc|icenses folder|ong)|g(?:reek drachma|et pathname)|vertical concatenation|keywords index)'
+  support_constants3: '(?i)(?:ex(?:if (?:[by]|c(?:o(?:lor s(?:equential (?:linear|area)|pace)|mpulsory flash (?:suppression|firing)|(?:ol white fluorescen|ntras)t)|enter weighted average|lo(?:udy|se)|r(?:eative)?|ustom|b)|s(?:h(?:utter speed priority ae|a(?:rpness|de))|cene (?:(?:landsca|ty)pe|portrait)|tandard(?: light [abc])?|ensing method|ubject area|aturation| rgb|pot)|f(?:i(?:l(?:m scanner|e source)|ne weather)|lash(?: (?:energy|fired|mode)|light)?|ocal length| number)|d(?:ay(?:ligh(?:t fluorescen)?| white fluorescen)t|i(?:gital camera|stant)|etected|5[05]|[67]5)|a(?:(?:perture (?:priority a|valu)|verag)e|uto(?: (?:bracket|mode))?|dobe rgb|ction)|l(?:ight (?:fluorescent|source)|ow(?: gain (?:down|up))?|andscape)|n(?:o(?: detection function|t de(?:tect|fin)ed|rmal|ne)|ight)|m(?:a(?:ker note|nual|cro)|ulti s(?:egmen|po)t|etering mode)|ex(?:posure (?:(?:mod|tim)e|portrait|index)|if version)|t(?:(?:hree|wo) chip color area|rilinear|ungsten)|u(?:n(?:(?:calibrat|us)ed|known)|ser comment)|r(?:e(?:flection print scanner|served))?|white (?:fluorescent|balance)|o(?:ne chip color area|ther)|high(?: gain (?:down|up))?|g(?:a(?:in control|mma))?|p(?:rogram ae|artial)|isostudio tungsten)|ecute on client process)|i(?:ptc (?:s(?:(?:atellit|ingl|ourc|cen)e|ub location|tar rating|ymbolic)|p(?:ro(?:vince stat|fil)e|(?:erform|os)ing|anoramic view)|c(?:o(?:ntact|uple)|(?:ategor|it)y|lose up|redit)|(?:(?:movie|night) scen|bylin(?:e titl)?)e|h(?:ead(?:line|shot)|alf length)|o(?:bject (?:cycl|nam)e|ff beat)|e(?:xterior view|dit status)|i(?:nterior view|mage type)|u(?:nder water|rgency)|a(?:erial view|ction)|g(?:eneral view|roup)|writer editor|full length|rear view|keywords|two)|nt(?:o 4d (?:(?:commands|request) log|debug message)|ernal (?:4d serv|tim)er process)|s(?: (?:integer 64 bits|float)|o date gmt)|dle connections timeout)|gps (?:m(?:easure(?:ment in(?:teroperability| progress)| mode)|a(?:gnetic north|p datum)|iles h)|l(?:ongitude(?: (?:d(?:eg|ir)|min|sec))?|atitude(?: (?:d(?:eg|ir)|min|sec))?)|d(?:est (?:(?:l(?:ong|at)itud|distanc)e|bearing)|ifferential|ate time|op)|(?:[23]|correction(?: not)? applie|version i)d|s(?:(?:atellite|tatu)s|peed(?: ref)?|outh)|a(?:ltitude(?: ref)?|bove sea level)|tr(?:ack(?: ref)?|ue north)|(?:k(?:nots|m) |nort)h|below sea level|img direction|(?:ea|we)st)|t(?:iff (?:c(?:o(?:lor filter array|mpression|pyright)|ci(?:rlew|tt1d)|m(?:yk)?|ielab)|j(?:peg(?:thumbs only|2000)?|big(?:color|b&w)?)|i(?:t(?:8(?:ctpad|bl|lw|mp)|ulab)|cclab|nches)|d(?:(?:(?:ocument na|ate ti)m|eflat)e|cs)|(?:[xy]resolu|orienta)tion|ho(?:st computer|rizontal)|kodak(?: (?:dcr|kdc)|262)|a(?:dobe deflate|rtist)|l(?:inear ra|z)w|black is zero|m(?:odel|ake)|epson erf|software)|emporary memory size)|s(?:ql (?:method execution process|engine case sensitivity|autocommit)|erver (?:base process stack size|interface process)|tart(?: menu win_(?:user|all)|up win_(?:user|all))|sl cipher list)|4d (?:(?:s(?:ql server(?: local)?|oap local)|web (?:one connetion|local)) license|remote mode(?: (?:scheduler|timeout))?|local mode(?: scheduler)?|volume desktop)|c(?:lient (?:manager process|log recording)|reated from execution dialog|urrent resources folder)|m(?:a(?:ximum temporary memory size|in process)|(?:ethod editor macro|onitor|sc) process)|h(?:t(?:tp compression (?:threshold|level)|ml root folder)|ighlighted method text)|a(?:pplications or program files|uto synchro resources folder)|o(?:rder by formula on server|n exit process)|u(?:ser preferences_(?:user|all)|nicode mode)|(?:web server|restore|backup) process|f(?:older separator|ull method text)|query by formula (?:on server|joins)|log(?: file process|s folder)|d(?:ate rfc 1123|esktop))'
+  support_constants4: '(?i)(?:_o_(?:4d (?:f(?:or (?:(?:postgre|my)sql|sybase|ado) license|irst)|(?:(?:remote|local) mode|server) scheduler|d(?:raw license|esktop)|interpreted desktop)|(?:qt (?:(?:(?:compact )?vide|phot)o|animation|graphics|raw) compresso|netherlands guilde)r|d(?:irect2d (?:(?:hard|soft)ware svg and editors|mixed)|atabase cache size|eutsche mark)|mac(?: (?:(?:control panel|extension)s|shutdown items_(?:user|all))|intosh 68k)|web (?:process with context|conversion mode|log recording)|f(?:innish markka|rench franc|ull version)|po(?:werpc (?:60[134]|g3)|rtuguese escudo)|i(?:ntel [34]86|talian lira|rish pound)|(?:spanish peset|greek drachm)a|(?:luxembourg|belgian) franc|real display precision|e(?:xtras folder|uro)|austrian schilling)|exif (?:f(?:lash (?:re(?:d eye reduction|turn light)|function present|pix version)|ocal (?:plane (?:[xy] resolution|resolution unit)|lens? in 35 mm film))|s(?:(?:hutter speed valu|cene capture typ)e|ubject (?:dist(?: rang|anc)e|location)|pectral sensitivity)|c(?:omp(?:ressed bits per pixel|onents configuration)|ustom rendered)|(?:(?:max aperture|brightness) valu|related sound fil)e|d(?:ate time (?:digitized|original)|igital zoom ratio)|i(?:so speed ratings|mage unique id)|exposure (?:bias value|program)|pixel [xy] dimension)|i(?:pt(?:c (?:c(?:o(?:(?:untry primary|ntent) location (?:cod|nam)|pyright notic)e|aption abstract)|o(?:rigina(?:l transmission reference|ting program)|bject attribute reference)|s(?:u(?:pplemental category|bject reference)|pecial instructions)|d(?:igital creation date time|ate time created)|(?:image orientat|program vers)ion|(?:expiration|release) date time|(?:languag|fixtur)e identifier))?|nt(?:ernal 4d localization|o 4d diagnostic log)|s (?:json null|a folder|object)|gnore invisible)|t(?:i(?:ff (?:m(?:di(?:(?:progressive transform|binary level) codec|vector)|irror (?:horizontal(?: and rotate(?:27|9)0cw)?|vertical)|m)|p(?:ixar (?:log(?: l(?:uv)?)?|film)|hotometric interpretation|entax pef|ack bits)|r(?:otate(?:(?:27|9)0cw|180)|esolution unit|gb(?:palette)?)|t(?:(?:4group3|6group4)fax|ransparency mask|hunderscan)|s(?:gilog(?:24)?|ony arw)|n(?:ikon nef|ext|one)|u(?:ncompressed|m)|image description|white is zero|ycb cr)|me array)|ransparency)|d(?:i(?:rect2d (?:s(?:oftware(?: svg and editors)?|tatus)|hardware(?: svg and editors)?|get active status|(?:disabl|mix)ed)|agnostic log recording)|ocument(?: (?:with (?:native format|cr(?:lf)?|lf)|unchanged)|s folder)|e(?:lete (?:only if empty|with contents)|fault localization)|ata folder)|g(?:ps (?:dest (?:l(?:ongitude (?:d(?:eg|ir)|min|sec)|atitude (?:d(?:eg|ir)|min|sec))|(?:distance|bearing) ref)|img direction ref|processing method|area information|niles h)|zip (?:be|fa)st compression mode)|http (?:d(?:i(?:splay auth dial(?:og)?|gest)|elete method)|(?:(?:p(?:os|u)|ge)t|options|head) method|(?:follow|max) redirect|t(?:race method|imeout)|reset auth settings|compression|basic)|4d (?:(?:s(?:ql server one conn.|oap one connection)|web one connection|mobile(?: test)?) license|d(?:esktop|igest))|p(?:hp (?:interpreter (?:ip address|port)|use external interpreter|number of children|max requests)|osix path)|c(?:ache (?:unload minimum size|flush periodicity)|(?:ircular log limit|urrent localiz)ation| byline title)|l(?:dap (?:password (?:plain text|md5)|root (?:and next|only)|all levels)|ast backup file|og command list)|use(?:r s(?:ettings(?: f(?:ile(?: for data)?|or data file))?|ystem localization)| legacy network layer)|s(?:ql server port id|sl version string|tructure settings|pellchecker|ha1 digest)|(?:number of formulas in cach|json use local tim)e|w(?:eb process on 4d remote|orker process)?|b(?:ackup configuration file|lob array)|m(?:erged application|d5 digest)|(?:file name entr|object arra)y|quicktime support|recursive parsing|64 bit version|absolute path)'
+  support_constants: '\b({{support_constants1}}|{{support_constants2}}|{{support_constants3}}|{{support_constants4}}){{irb}}'
+  commands: '\b(?i)(?:g(?:et (?:r(?:e(?:sponse (?:cookie(?: (?:http only|expires|domain|secure|path)|s)?|headers?|buffer|status)|quest (?:cookies?|infos?|value))|oot)|c(?:o(?:llection (?:array(?: size)?|item(?: count)?|keys)|ntent (?:charset|type))|a(?:che control|ll chain)|urrent script timeout)|s(?:ession (?:array(?: size)?|(?:stat|key)s|timeout)|(?:cript timeou|ystem forma)t)|u(?:pload (?:(?:remote filenam|content typ|siz)e|e(?:xtension|ncoding))|tc delta)|f(?:ield (?:p(?:roperties|ointer)|numbers)|orm variable(?: c(?:hoices|ount)|s)?)|t(?:ime(?:stamp datetime| remaining)|hrow (?:messag|cod)e)|l(?:ast (?:field|table) number|icense info|og level)|p(?:icture from library|latform charset|ointer)|i(?:tem (?:(?:arra|ke)y|type)|ndexed string)|e(?:rror (?:status|page)|xpires(?: date)?)|global(?: (?:array(?: size)?|item|keys))?|query param(?: c(?:hoices|ount)|s)?|output (?:encoding|charset)|document (?:position|size)|http error page|auto relations|version)|oto(?: selected)? record|lobals has)|s(?:e(?:t (?:response (?:cookie(?: (?:http only|expires|domain|secure|path))?|(?:buff|head)er|status)|c(?:o(?:ntent (?:charset|type)|llection(?: array)?)|urrent script timeout|ache control)|s(?:ession(?: (?:timeout|array))?|cript timeout)|d(?:ocument position|efault century)|e(?:xpires(?: date)?|rror page)|(?:http error pag|blob siz)e|a(?:utomatic relations|rray)|output (?:encoding|charset)|query (?:destination|limit)|global(?: array)?|lo(?:g leve|ca)l|platform charset)|ssion (?:(?:internal )?id|to blob|local|query|has)|lect(?:ion(?: range)? to array|ed record number)|quence number|nd packet|maphore)|t(?:art (?:json (?:object|array)|transaction)|r(?:ing(?: list to array)?|ucture file))|ave (?:(?:upload to fiel|recor)d|collection|output)|(?:ize of|ort) array|plit (?:string|path)|l(?:ice string|eep)|u(?:bstring|m)|can index)|c(?:o(?:unt (?:(?:re(?:sponse (?:cookie|header)|quest (?:cookie|info))|(?:(?:collect|sess)ion ite|query para)m|f(?:orm variable|ield)|global|upload|table)s|in array)|py (?:(?:documen|se)t|named selection|upload|array)|llection(?: (?:to (?:object|blob)|has))?|m(?:pare strings|mand name)|ncat)|u(?:rrent (?:(?:(?:method na|ti)m|dat|fil)e|li(?:brary name|ne number)|p(?:latform|rocess|ath)|realm)|t named selection)|l(?:ear (?:(?:named se|col)lection|response buffer|se(?:maphore|t)|variable|object|array)|ose document)|reate (?:se(?:lection from array|t(?: from array)?)|(?:empty se|documen)t|folder|record)|_(?:p(?:icture|ointer)|b(?:oolean|lob)|t(?:ext|ime)|longint|string|date|real)|a(?:ncel transaction|ll 4d method|pitalize)|har(?:acter code)?|ell)|r(?:e(?:gex (?:find(?: all)? in array|(?:callback )?replace|match(?: all)?|quote pattern|split)|c(?:ord(?:s in (?:se(?:lection|t)|table)| number)|eive packet)|s(?:olve p(?:ointer|ath)|ponse buffer size|ize array)|late (?:many(?: selection)?|one(?: selection)?)|ad (?:(?:picture fil|writ)e|only(?: state)?)|d(?:uce selection|irect)|quest(?: query|ed url)|move from set|place string)|andom(?: between)?|ight trim|ound)|a(?:dd (?:(?:(?:sele|fun)ction|datetime|rowset) to json|to (?:timestamp|date|json|set)|element)|rray (?:p(?:icture|ointer)|b(?:oolean|lob)|t(?:ext|ime)|integer|longint|string|date|real)|ut(?:h(?: (?:password|type|user)|enticate)|o(?:matic relations| relate))|b(?:andon (?:response cookie|session)|s)|ppend (?:document|to array)|ll records|verage|scii)|d(?:e(?:l(?:ete (?:re(?:sponse (?:cookie|header)|cord)|s(?:e(?:ssion item|lection)|tring)|f(?:rom array|older)|(?:docu|ele)ment|collection item|global)|ay process)|f(?:ault directory|ined)|ep clear collection|c)|i(?:rectory (?:separator|exists|of)|stinct values|fference)|a(?:y (?:of(?: year)?|number)|te)|ocument (?:to blob|list))|t(?:i(?:me(?:stamp(?: (?:m(?:i(?:llisecond|nute)|onth)|d(?:a(?:te|y)|ifference)|s(?:econd|tring)|(?:hou|yea)r|time))?| (?:to longint|string))?|ckcount)|e(?:st (?:path nam|semaphor)e|xt to blob)|ype(?: descriptor)?|r(?:u(?:nc|e)|im)|abl(?:e nam)?e|hrow)|u(?:rl (?:decode(?: (?:query|path))?|encode(?: (?:query|path))?|to native path)|n(?:lo(?:ck globals|ad record)|defined|ion)|se (?:(?:character )?set|named selection)|t(?:c to local (?:date)?time|f8 to mac)|p(?:load to blob|percase))|i(?:n(?:sert (?:in(?:to)? array|element|string)|t(?:er(?:polate string|section))?|clude into| error)|s(?: (?:a(?: collection|n iterator|rray)|(?:field|table) number valid|in set)|o to mac)|dentical strings)|f(?:i(?:l(?:e(?: exists|name of)|l array)|nd in(?: (?:array|field)|dex key)|rst (?:(?:not )?of|record)|eld(?: name)?)|o(?:rm(?: variables has|at string)|lder list)|ull requested url|lush library|alse)|l(?:o(?:c(?:al (?:date)?time to utc|k(?: globals|ed))|ngint to (?:blob|time)|(?:g messag|wercas)e|ad record)|i(?:st to array|brary list)|ast (?:(?:not )?of|record)|e(?:ft trim|ngth))|m(?:(?:ultisort(?: named)? array|ethod exist)s|a(?:c to (?:html|utf8|iso|win)|x(?: of)?)|o(?:ve document|re items|nth of)|i(?:lliseconds|n(?: of)?)|d5 sum)|b(?:lo(?:b (?:to (?:(?:(?:docume|longi)n|tex)t|(?:collect|sess)ion)|size)|wfish (?:de|en)crypt)|ase64 (?:de|en)code|uild query string|efore selection)|w(?:rite(?: (?:p(?:icture file|ng)|j(?:sonp?|pe?g)|to console|blob|gif|raw)|br|ln|p)?|eek of year|in to mac)|e(?:n(?:d (?:s(?:ave output|election)|json (?:object|array))|close)|x(?:ecute in 4d|tension of))|query(?: (?:selection(?: (?:by formula|with array))?|by formula|params has|with array))?|p(?:icture (?:properties|size)|aram(?:eter mode| text)|revious record|osition)|n(?:e(?:xt (?:record|item)|w json)|ative to url path|il(?: pointer)?|ot|um)|o(?:(?:ne record selec|pen documen)t|rder by(?: formula)?)|j(?:son (?:to text|encode)|oin (?:array|paths))|va(?:lidate transaction|riable name)|h(?:ide session field|tml encode)|year of){{irb}}'
+  collection_commands: '\b(?i)(?:(?:(?:(?:new(?: (?:glob|loc)al)?|deep copy|object to) collect|sess)i|parse js)on|g(?:et (?:session(?: item)?|collection|item value|local)|lobals)|re(?:sponse (?:cookie|header)s|quest (?:cookies|info))|c(?:o(?:py collec|nfigura)tion|all method|hoose)|(?:merge collection|form variable|query param)s|lo(?:ad collection|cal variables)|_(?:request|query|form)|execute){{irb}}'
+  library_methods: '\b(?i)(?:a4d.(?:web.(?:b(?:uild(?:optionsfrom(?:option(?:array|list)|(?:array|list)s|selection|rowset)|(?:array(?:value)?|record)list|select(?:value)?menu)|r)|em(?:bed(?:(?:queryparam|variable)s|formvariable(?:list|s)|collection(?:items)?)|ptytag)|c(?:ollection(?:items)?toquery|heck(?:boxstate|session))|(?:w(?:arninvalidfie|ritebo)|hid(?:euniqu)?efie)ld|get(?:variablesiterator|emptyfields|uniqueid)|valid(?:atetextfield|emailaddres)s|formvariablelisttoquery|saveformtosession|makesafemailto)|utils.(?:get(?:smtp(?:auth(?:orization|password|user)|host)|p(?:icturedescriptor|ointerreferent)|mailmethod)|se(?:t(?:smtp(?:authorization|host)|mailmethod)|lection(?:range)?tocollection|ssiontoblob|ndmail)|c(?:(?:amelcase|hop)text|ollectiontoblob|ud)|(?:blobto(?:collect|sess)|deleteselect)ion|f(?:iltercollection|ormatusphone)|a(?:pplytoselection|rticlefor)|(?:reversearr|yearmonthd)ay|(?:unlockandloa|nexti)d|truncatetext|parseconfig|validprice|ordinalof)|lists.(?:(?:(?:(?:inser|ge)t|delete)a|s(?:eta|or)|res)t|c(?:ontains(?:nocase)?|hangedelims)|value(?:count(?:nocase)?|list)|fi(?:nd(?:nocase)?|rst)|l(?:isttoarray|ast|en)|a(?:rraytolist|ppend)|prepend|qualify)|json.(?:en(?:code(?:(?:collectio|boolea)n|string|array|date)?|d(?:object|array))|add(?:(?:sele|fun)ction|datetime|rowset|array)?|start(?:object|array)|convertjsondates|writep?|tojson|parse|new)|debug.(?:dump (?:(?:form variable|query param)s|se(?:ssion(?: stats)?|lection)|r(?:equest(?: info)?|owset)|co(?:nfigura|llec)tion|l(?:icense info|ocals)|array)|(?:write|add)dumpstyles)|console.(?:dump (?:(?:form variable|query param)s|(?:license|request) info|(?:collect|sess)ion|array)|clear))|rowset.(?:(?:(?:is(?:(?:before)?fir|(?:after)?la)|(?:after)?la|beforefir)s|rowcoun|timedou)t|g(?:et(?:(?:persistentlis|timeou|star)t|column(?:source)?|data|end|row)|otorow)|s(?:et(?:column(?:array|data)|relateone|timeout)|o(?:urcerowcoun|r)t)|ne(?:wfrom(?:(?:cached)?selection|arrays|data|file)|xt)|c(?:(?:learpersiste|olumncou)nt|urrentrow)|fi(?:nd(?:column|row)|rst)|p(?:ersistent|revious)|dump(?:persistent)?|m(?:axrows|ove))|fusebox.(?:h(?:ead.(?:add(?:(?:dumpstyle|cs)s|j(?:avascript|s)|metatag)|(?:[gs]ettitl|writ)e)|andleerror(?:inline)?)|i(?:sfuseboxrequest|nvalidaction)|se(?:ndfuseaction|turlfactory)|posthandleerror|geturlfactory|makeurl|core)|b(?:atch.(?:(?:(?:(?:dump|set)defaul|get(?:defaul|star))t|make(?:fusebox)?link|previou)s|ne(?:w(?:from(?:selection|rowset|array))?|xt))|readcrumbs.(?:set(?:separator|divid)|(?:fusebox)?new|dumplib|write|add))){{irb}}'
+
+  interpolated_collection: '(?i:_(?:form|query|request)|globals|session){{interpolated_index}}{{interpolated_character_ref}}?'
+
+  # Array or collection indexes
+  interpolated_index: '(?:(\{)(.*?)(\}))'
+
+  # Reference to character of string
+  interpolated_character_ref: '(?:(\[\[)(\d+)(\]\]))'
+
+contexts:
+  root-a4d:
+    - match: '(?=%>)'
+      pop: true
+
+  main:
+    - include: statements
+
+  statements:
+    - include: comments
+    # - include: allow-line-continuation
+    - include: keywords
+    - include: control-flow
+    - include: method-definition
+    - include: define
+    - include: statement-expression
+
+  keywords:
+    - match: '\b(?i)(?:import|include(?: into)?|require){{irb}}'
+      scope: keyword.control.import.a4d
+
+    - match: '\b(?i)(?:exit|return){{irb}}'
+      scope: keyword.control.a4d
+
+    - match: '\b(?i)(?:global){{irb}}'
+      scope: keyword.other.a4d
+
+    - match: '\b(?i)(?:(?:end )?library){{irb}}'
+      scope: invalid.illegal.misplaced-library-keyword.a4d
+
+  control-flow:
+    - match: '\b(?:end (?:case|if|for(?: each)?|method|while)|until){{irb}}'
+      scope: invalid.illegal.unmatched-flow-control-end.a4d
+
+    - include: break-continue
+    - include: if
+    - include: case-of
+    - include: for
+    - include: for-each
+    - include: while
+    - include: repeat
+
+  #
+  # Used by all control flow that has boolean conditions
+  #
+  inside-boolean-condition:
+    - include: comments
+    - include: allow-line-continuation
+
+    - match: '(?={{end_of_statement}})'
+      pop: true
+
+    # This kind of syntax is valid: ($foo > 0) | ($bar > 0)
+    - match: '[|&]'
+      scope: keyword.operator.logical.a4d
+      set:
+        - include: allow-line-continuation
+
+        # Don't eat '(' unless we match it so that we can pop
+        # and let next context fail on the next invalid character.
+        - match: (?=\()
+          set:
+            - match: \(
+              scope: punctuation.section.group.begin.a4d
+              set: [inside-boolean-condition, inside-group]
+
+        - match: ''
+          pop: true
+
+    # Let next context deal with the next invalid character
+    - match: ''
+      pop: true
+
+  #
+  # if/else/end if
+  #
+  if:
+    - match: '\b(?i:if){{irb}}'
+      scope: keyword.control.conditional.a4d
+      push: after-if
+
+  after-if:
+    - include: allow-line-continuation
+
+    - match: '(?=\s*\()'
+      set: if-condition
+
+    - match: '\S+'
+      scope: invalid.illegal.unexpected-token.a4d
+      pop: true
+
+  if-condition:
+    - match: \(
+      scope: punctuation.section.group.begin.a4d
+      set: [after-if-condition, inside-boolean-condition, inside-group]
+
+  after-if-condition:
+    - match: '{{end_of_statement}}'
+      set: inside-if-block
+
+    - include: unexpected-token
+
+  inside-if-block:
+    - meta_scope: meta.block.if.a4d
+
+    # Use a lookahead so we can drop the meta.block before the keyword
+    - match: '(?=\b(?i:else){{irb}})'
+      set:
+      - match: '\b(?i:else)'
+        scope: keyword.control.conditional.a4d
+        set:
+          - match: '{{end_of_statement}}'
+            set: inside-if-else-block
+
+          - include: unexpected-token
+
+    - include: inside-if-else-block-common
+
+  inside-if-else-block:
+    - meta_content_scope: meta.block.else.a4d
+
+    # There can only be one else in an if block
+    - match: '\b(?i:else){{irb}}'
+      scope: invalid.illegal.misplaced-else.a4d
+
+    - include: inside-if-else-block-common
+
+  inside-if-else-block-common:
+    # Use a lookahead so we can drop the meta.block before the keyword
+    - match: '(?=\b(?i:end if){{irb}})'
+      set: end-of-if-block
+
+    - include: inside-block
+    - include: statements
+
+  end-of-if-block:
+    - match: '\b(?i:end if)'
+      scope: keyword.control.conditional.a4d
+      set:
+        - match: '{{end_of_statement}}'
+          pop: true
+
+        - include: unexpected-token
+
+  #
+  # case of/:/else/end case
+  #
+  case-of:
+    - match: '\b(?i:case of){{irb}}'
+      scope: keyword.control.conditional.a4d
+      push: after-case-of
+
+  after-case-of:
+    - match: '{{end_of_statement}}'
+      set: inside-case-of-block
+
+    - include: unexpected-token
+
+  inside-case-of-block:
+    - meta_scope: meta.block.case-of.a4d
+
+    # Use a lookahead so we can drop the meta.block before the keyword
+    - match: '(?=:(?!:?=))'
+      set:
+        - meta_scope: meta.block.case-of.a4d
+
+        - match: ':'
+          scope: keyword.control.conditional.a4d
+          set: after-case
+
+    # Use a lookahead so we can drop the meta.block before the keyword
+    - match: '(?=\b(?i:else){{irb}})'
+      set:
+        - meta_scope: meta.block.case-of.a4d
+
+        - match: '\b(?i:else)'
+          scope: keyword.control.conditional.a4d
+          set:
+            - match: '{{end_of_statement}}'
+              set: inside-case-else-block
+
+            - include: unexpected-token
+
+    # Use a lookahead so we can drop the meta.block before the keyword
+    - match: '(?=\b(?i:end case){{irb}})'
+      set:
+        - meta_scope: meta.block.case-of.a4d
+
+        - match: '\b(?i:end case)'
+          scope: keyword.control.conditional.a4d
+          set:
+            - match: '{{end_of_statement}}'
+              pop: true
+
+            - include: unexpected-token
+
+    - include: inside-case-block-common
+
+  after-case:
+    - meta_content_scope: meta.block.case-of.a4d
+
+    - include: allow-line-continuation
+
+    - match: '(?=\s*\()'
+      set: case-condition
+
+    - include: unexpected-token
+
+  case-condition:
+    - meta_scope: meta.block.case-of.a4d
+
+    - match: \(
+      scope: punctuation.section.group.begin.a4d
+      set: [after-case-condition, inside-case-boolean-condition, case-condition-parens]
+
+  case-condition-parens:
+    - match: ''
+      set:
+        - meta_scope: meta.block.case-of.a4d
+        - include: inside-group
+
+  inside-case-boolean-condition:
+    - match: ''
+      set:
+        - meta_scope: meta.block.case-of.a4d
+        - include: inside-boolean-condition
+
+  after-case-condition:
+    - match: '{{end_of_statement}}'
+      set: inside-case-block
+
+    - include: unexpected-token
+
+  inside-case-block:
+    - meta_scope: meta.block.case-of.a4d meta.block.case.a4d
+    - include: inside-case-of-block
+
+  inside-case-else-block:
+    - meta_content_scope: meta.block.case-of.a4d meta.block.case-else.a4d
+
+    # There can only be one else in a case of block
+    - match: '\b(?i:else){{irb}}'
+      scope: invalid.illegal.misplaced-else.token.a4d
+
+    - include: inside-case-block-common
+
+  inside-case-block-common:
+    # Use a lookahead so we can drop the meta.block before the keyword
+    - match: '(?=\b(?i:end case){{irb}})'
+      set:
+        - meta_scope: meta.block.case-of.a4d
+
+        - match: '\b(?i:end case)'
+          scope: keyword.control.conditional.a4d
+          set:
+            - match: '{{end_of_statement}}'
+              pop: true
+
+            - include: unexpected-token
+
+    - include: inside-block
+    - include: statements
+
+  #
+  # Generic to all loops
+  #
+  break-continue:
+    - match: '\b(?i:break|continue){{irb}}'
+      scope: keyword.control.loop.a4d
+      push:
+        - match: '{{end_of_statement}}'
+          pop: true
+
+        - include: unexpected-token
+
+  #
+  # for/end for
+  #
+  for:
+    - match: '\b(?i:for){{irb}}'
+      scope: keyword.control.loop.a4d
+      push: after-for
+
+  after-for:
+    - include: allow-line-continuation
+    - include: not-end-of-statement
+
+    - match: '(?=\s*\()'
+      set: for-init
+
+    - include: unexpected-token
+
+  for-init:
+    - meta_scope: meta.for-init.a4d
+
+    - match: '\s*(\()'
+      captures:
+        1: punctuation.section.for-init.begin.a4d
+      set: [after-for-init, for-end, for-start, for-variable]
+
+  for-variable:
+    - include: allow-line-continuation
+    - include: not-end-of-statement
+
+    - match: '(?=(?:\$|<>){{identifier}})'
+      set:
+        - include: vars
+
+        - match: ';'
+          scope: punctuation.separator.for-init.a4d
+          pop: true # for-start is next
+
+        - include: unexpected-token
+
+    - match: '(?={{identifier}})'
+      set:
+        - include: identifier
+
+        - match: ';'
+          scope: punctuation.separator.for-init.a4d
+          pop: true
+
+        - include: unexpected-token
+
+  for-start:
+    - include: allow-line-continuation
+    - include: not-end-of-statement
+
+    - match: ';'
+      scope: punctuation.separator.for-init.a4d
+      pop: true # for-end is next
+
+    - match: ''
+      push: semicolon-expression
+
+  for-end:
+    - meta_content_scope: meta.for-init.a4d
+
+    - include: allow-line-continuation
+    - include: not-end-of-statement
+
+    - match: \)
+      scope: meta.for-init.a4d punctuation.section.for-init.end.a4d
+      pop: true # after-for-init is next
+
+    - match: ''
+      push: group-expression
+
+  after-for-init:
+    - match: '{{end_of_statement}}'
+      set: inside-for-block
+
+    - include: unexpected-token
+
+  inside-for-block:
+    - meta_scope: meta.block.for.a4d
+
+    - include: break-continue
+
+    # Use a lookahead so we can drop the meta.block before the keyword
+    - match: '(?=\b(?i:end for){{irb}})'
+      set:
+        - match: '\b(?i:end for)'
+          scope: keyword.control.loop.a4d
+          set:
+            - match: '{{end_of_statement}}'
+              pop: true
+
+            - include: unexpected-token
+
+    - include: inside-block
+    - include: statements
+
+  #
+  # for each/end for each
+  #
+  for-each:
+    - match: '\b(?i:for each){{irb}}'
+      scope: keyword.control.loop.a4d
+      push: after-for-each
+
+  after-for-each:
+    - include: allow-line-continuation
+    - include: not-end-of-statement
+
+    - match: '(?=\s*\()'
+      set: for-each-init
+
+    - include: unexpected-token
+
+  for-each-init:
+    - match: '\s*(\()'
+      captures:
+        1: punctuation.section.for-each-init.begin.a4d
+      set: [after-for-each-init, for-each-iterable]
+
+  for-each-iterable:
+    - meta_scope: meta.for-each-init.a4d
+
+    - include: allow-line-continuation
+    - include: not-end-of-statement
+
+    - match: ';'
+      scope: punctuation.separator.for-each-init.a4d
+      set: for-each-variable1
+
+    - include: for-each-init-end
+
+    - match: ''
+      push: parameter-expression
+
+  for-each-variable1:
+    - meta_content_scope: meta.for-each-init.a4d
+
+    - include: allow-line-continuation
+    - include: not-end-of-statement
+
+    - match: '(?=(?:\$|<>){{identifier}})'
+      set:
+        - meta_scope: meta.for-each-init.a4d
+
+        - include: vars
+
+        - match: ';'
+          scope: punctuation.separator.for-each-init.a4d
+          set: for-each-variable2
+
+        - include: for-each-init-end
+        - include: unexpected-token
+
+    - match: '(?={{identifier}})'
+      set:
+        - meta_scope: meta.for-each-init.a4d
+
+        - include: identifier
+
+        - match: ';'
+          scope: punctuation.separator.for-each-init.a4d
+          set: for-each-variable2
+
+        - include: for-each-init-end
+        - include: unexpected-token
+
+    - include: unexpected-token
+
+  for-each-variable2:
+    - meta_content_scope: meta.for-each-init.a4d
+
+    - include: allow-line-continuation
+    - include: not-end-of-statement
+
+    - match: '(?=(?:\$|<>){{identifier}})'
+      set:
+        - meta_scope: meta.for-each-init.a4d
+
+        - include: vars
+        - include: for-each-init-end
+        - include: unexpected-token
+
+    - match: '(?={{identifier}})'
+      set:
+        - meta_scope: meta.for-each-init.a4d
+
+        - include: identifier
+        - include: for-each-init-end
+        - include: unexpected-token
+
+    - include: unexpected-token
+
+  for-each-init-end:
+    - match: \)
+      scope: punctuation.section.for-each-init.end.a4d
+      pop: true # after-for-each-init is next
+
+  after-for-each-init:
+    - match: '{{end_of_statement}}'
+      set: inside-for-each-block
+
+    - include: unexpected-token
+
+  inside-for-each-block:
+    - meta_scope: meta.block.for-each.a4d
+
+    - include: break-continue
+
+   # Use a lookahead so we can drop the meta.block before the keyword
+    - match: '(?=\b(?i:end for each){{irb}})'
+      set:
+        - match: '\b(?i:end for each)'
+          scope: keyword.control.loop.a4d
+          set:
+            - match: '{{end_of_statement}}'
+              pop: true
+
+            - include: unexpected-token
+
+    - include: inside-block
+    - include: statements
+
+  #
+  # while/end while
+  #
+  while:
+    - match: '\b(?i:while){{irb}}'
+      scope: keyword.control.loop.a4d
+      push: after-while
+
+  after-while:
+    - include: allow-line-continuation
+    - include: not-end-of-statement
+
+    - match: '(?=\s*\()'
+      set: while-condition
+
+    - include: unexpected-token
+
+  while-condition:
+    - match: \(
+      scope: punctuation.section.group.begin.a4d
+      set: [after-while-condition, inside-boolean-condition, inside-group]
+
+  after-while-condition:
+    - match: '{{end_of_statement}}'
+      set: inside-while-block
+
+    - include: unexpected-token
+
+  inside-while-block:
+    - meta_scope: meta.block.while.a4d
+
+    - include: break-continue
+
+   # Use a lookahead so we can drop the meta.block before the keyword
+    - match: '(?=\b(?i:end while){{irb}})'
+      set:
+        - match: '\b(?i:end while)'
+          scope: keyword.control.loop.a4d
+          set:
+            - match: '{{end_of_statement}}'
+              pop: true
+
+            - include: unexpected-token
+
+    - include: inside-block
+    - include: statements
+
+  #
+  # repeat/until
+  #
+  repeat:
+    - match: '\b(?i:repeat){{irb}}'
+      scope: keyword.control.loop.a4d
+      push:
+        - match: '{{end_of_statement}}'
+          set: inside-repeat-block
+
+        - include: unexpected-token
+
+  inside-repeat-block:
+    - meta_scope: meta.block.repeat.a4d
+
+    - include: break-continue
+
+    # Use a lookahead so we can drop the meta.block before the keyword
+    - match: '(?=\b(?i:until){{irb}})'
+      set:
+        - match: '\b(?i:until)'
+          scope: keyword.control.loop.a4d
+          set: until-condition
+
+    - include: inside-block
+    - include: statements
+
+  until-condition:
+    - match: \(
+      scope: punctuation.section.group.begin.a4d
+      set: [after-until-condition, inside-boolean-condition, inside-group]
+
+  after-until-condition:
+    - match: '{{end_of_statement}}'
+      pop: true
+
+    - include: unexpected-token
+
+  #
+  # define
+  #
+  define:
+    - match: '\b(?i)define{{irb}}'
+      scope: keyword.other.a4d
+      push: after-define
+
+  after-define:
+    - include: allow-line-continuation
+
+    - match: \(
+      scope: punctuation.section.group.begin.a4d
+      set: define-name
+
+    - include: not-end-of-statement
+    - include: unexpected-token
+
+  define-name:
+    - include: allow-line-continuation
+
+    - match: '{{identifier}}'
+      scope: entity.name.constant.a4d
+      set: after-define-name
+
+    - include: not-end-of-statement
+    - include: unexpected-token
+
+  after-define-name:
+    - include: allow-line-continuation
+
+    - match: ';'
+      scope: punctuation.separator.arguments.a4d
+      set: define-value
+
+    - include: not-end-of-statement
+    - include: unexpected-token
+
+  define-value:
+    - match: \)
+      scope: punctuation.section.group.end.a4d
+      set:
+        - include: allow-line-continuation
+        - include: comments
+        - include: expect-end-of-statement
+
+        - match: ''
+          pop: true
+
+    - include: not-end-of-statement
+
+    - match: ''
+      push: group-expression
+
+  #
+  # expression
+  #
+  expression:
+    - match: \)
+      scope: invalid.illegal.stray-close-parens.a4d
+
+    - match: \{
+      scope: invalid.illegal.stray-open-brace.a4d
+
+    - match: \}
+      scope: invalid.illegal.stray-close-brace.a4d
+
+    - match: \]
+      scope: invalid.illegal.stray-close-bracket.a4d
+
+    - match: '{{reserved_words}}'
+      scope: invalid.illegal.unexpected-token.a4d
+
+    # Must use this order to ensure proper parsing
+    - match: '{{language_constants}}'
+      scope: constant.language.a4d
+
+    - include: vars
+    - include: table-or-field
+    - include: identifiers
+    - include: strings
+    - include: operators
+    - include: date
+    - include: time
+
+    - match: '{{literal_number}}'
+      scope: constant.numeric.a4d
+
+    - match: \(
+      scope: punctuation.section.group.begin.a4d
+      push: inside-group
+
+    # A comma by itself should never occur, it's most likely mistaken for a ';'
+    - match: ','
+      scope: invalid.illegal.unexpected-token.a4d
+
+  statement-expression:
+    - match: '(?=\S)'
+      push:
+        - match: '(?={{statement_terminators}})'
+          pop: true
+
+        - match: ';'
+          scope: invalid.illegal.unexpected-token.a4d
+          pop: true
+
+        - include: expression
+
+  expression-interpolated:
+    - match: '(?<!\\)(?=`)'
+      pop: true
+
+    - include: expression
+
+  group-expression:
+    - include: allow-line-continuation
+
+    - match: '(?=\)|{{statement_terminators}})'
+      pop: true
+
+    - match: ';'
+      scope: invalid.illegal.unexpected-token.a4d
+      pop: true
+
+    - include: expression
+
+  index-expression:
+    - include: allow-line-continuation
+
+    - match: '(?=\}|{{statement_terminators}})'
+      pop: true
+
+    - include: index-expression-common
+
+  index-expression-interpolated:
+    - match: '(?=\})'
+      pop: true
+
+    - include: index-expression-common
+
+  index-expression-common:
+    - match: ';'
+      scope: invalid.illegal.unexpected-token.a4d
+      pop: true
+
+    - include: expression
+
+  character-ref-expression:
+    - include: allow-line-continuation
+
+    - match: '(?=\]|{{statement_terminators}})'
+      pop: true
+
+    - include: character-ref-expression-common
+
+  character-ref-expression-interpolated:
+    - match: '(?=\])'
+      pop: true
+
+    - include: character-ref-expression-common
+
+  character-ref-expression-common:
+    - match: '[;)}]'
+      scope: invalid.illegal.unexpected-token.a4d
+      pop: true
+
+    - include: expression
+
+  parameter-expression:
+    - include: allow-line-continuation
+
+    - match: '(?=[;)]|{{statement_terminators}})'
+      pop: true
+
+    - include: expression
+
+  semicolon-expression:
+    - include: allow-line-continuation
+
+    - match: '(?=;|{{statement_terminators}})'
+      pop: true
+
+    - match: '[)}]'
+      scope: invalid.illegal.unexpected-token.a4d
+      pop: true
+
+    - include: expression
+
+  # Only after <%=
+  embedded-expression:
+    - match: '(?=;|%>)'
+      pop: true
+
+    - match: '[)}]'
+      scope: invalid.illegal.unexpected-token.a4d
+      pop: true
+
+    - include: line-comment
+    - include: expression
+
+  # Only after ; within <%= expr; format %>
+  embedded-format-expression:
+    - match: '(?=%>)'
+      pop: true
+
+    - match: '[;)}]'
+      scope: invalid.illegal.unexpected-token.a4d
+      pop: true
+
+    - include: line-comment
+    - include: expression
+
+  #
+  # vars
+  #
+  vars:
+    - include: local-var
+    - include: ip-var
+
+  local-var:
+    - match: '{{local_var}}'
+      scope: variable.other.local.a4d
+      push: allow-index-or-character-ref
+
+  ip-var:
+    - match: '{{ip_var}}'
+      scope: variable.other.interprocess.a4d
+      push: allow-index-or-character-ref
+
+  identifiers:
+    - match: '{{support_constants}}{{irb}}'
+      scope: support.constant.a4d
+      push: allow-character-ref
+
+    - match: '{{commands}}{{irb}}(?=\s*\()'
+      scope: meta.function-call.a4d support.function.a4d
+      push: [allow-character-ref, function-args]
+
+    - match: '{{commands}}{{irb}}'
+      scope: meta.function-call.a4d support.function.a4d
+      push: allow-character-ref
+
+    # Any identifiers that follow may return a collection or may be an array,
+    # and thus may take an index as a suffix.
+
+    - match: '{{collection_commands}}{{irb}}(?=\s*\()'
+      scope: meta.function-call.a4d support.function.a4d
+      push: [allow-index-or-character-ref, function-args]
+
+    - match: '{{collection_commands}}{{irb}}'
+      scope: meta.function-call.a4d support.function.a4d
+      push: allow-index-or-character-ref
+
+    - match: '{{library_methods}}{{irb}}(?=\s*\()'
+      scope: meta.function-call.a4d support.function.std-library.method.a4d
+      push: [allow-index-or-character-ref, function-args]
+
+    - match: '{{library_methods}}{{irb}}'
+      scope: meta.function-call.a4d support.function.std-library.method.a4d
+      push: allow-index-or-character-ref
+
+    - match: '(?:{{identifier}}\.)+{{identifier}}(?=\s*\()'
+      scope: meta.function-call.a4d variable.function.library.method.a4d
+      push: [allow-index-or-character-ref, function-args]
+
+    - match: '(?:{{identifier}}\.)+{{identifier}}'
+      scope: entity.name.library-method-or-constant.a4d
+      push: allow-index-or-character-ref
+
+    - match: '\bself{{irb}}'
+      scope: variable.language.a4d
+      push: allow-index-and-character-ref
+
+    - match: '{{identifier}}(?=\s*\()'
+      scope: meta.function-call.a4d variable.function.a4d
+      push: [allow-index-or-character-ref, function-args]
+
+    - include: identifier
+
+  identifier:
+    # Any other identifier is a plain name
+    - match: '{{identifier}}'
+      scope: entity.name.a4d
+      push: allow-index-or-character-ref
+
+  operators:
+    # Common mistakes
+    - match: '(?:[!~]=)'
+      scope: invalid.illegal.unexpected-token.a4d
+
+    - include: maybe-post-operators
+    - include: format-operators
+    - include: binary-operators
+
+  maybe-post-operators:
+      # If these come after a value, they can be at the end of a statement
+    - match: '(?:(->)|(\+\+|--))'
+      captures:
+        1: keyword.operator.pointer.a4d
+        2: keyword.operator.increment-decrement.a4d
+
+  format-operators:
+    - match: '%%'
+      scope: keyword.operator.format.a4d
+      push: format-args
+
+    - match: '%(?=\s*\()'
+      scope: keyword.operator.format.a4d
+      push: format-args
+
+    - match: '%(?!=)'
+      scope: keyword.operator.arithmetic.a4d
+      push: expect-not-end-of-statement
+
+  format-args:
+    - meta_scope: meta.format-args.a4d
+
+    - match: '\('
+      scope: punctuation.section.format-args.begin.a4d
+      set:
+        - meta_scope: meta.format-args.a4d
+
+        - match: '(?:\n|{{statement_terminators}})'
+          scope: invalid.illegal.expected-close-parens.a4d
+          pop: true
+
+        - match: '\)'
+          scope: punctuation.section.format-args.end.a4d
+          pop: true
+
+        - match: ';'
+          scope: punctuation.separator.format-args.a4d
+
+        - match: ''
+          push: parameter-expression
+
+    - include: unexpected-token
+
+  binary-operators:
+    - match: |-
+        (?x)
+          (?:
+            ({{assignment_operators}})
+          | ({{bitwise_operators}})
+          | ({{comparison_operators}})
+          | ({{regex_comparison_operators}})
+          | ({{arithmetic_operators}})
+          | ({{multiple_use_operators}})
+          )
+      captures:
+        1: keyword.operator.assignment.a4d
+        2: keyword.operator.bitwise.a4d
+        3: keyword.operator.comparison.a4d
+        4: keyword.operator.comparison.a4d
+        5: keyword.operator.arithmetic.a4d
+        6: keyword.operator.a4d
+      push: expect-not-end-of-statement
+
+  #
+  # comments
+  #
+  comments:
+    - include: block-comment
+    - include: line-comment
+
+  block-comment:
+    - match: /\*
+      scope: punctuation.definition.comment.begin.a4d
+      push:
+        - meta_scope: comment.block.a4d
+
+        - match: \*/
+          scope: punctuation.definition.comment.end.a4d
+          pop: true
+
+  line-comment:
+    - match: //
+      scope: punctuation.definition.comment.a4d
+      push:
+        - meta_scope: comment.line.a4d
+
+        - include: root-a4d
+
+        # Consume the newline so that completions aren't shown at the end of the line
+        - match: \n
+          pop: true
+
+  #
+  # strings
+  #
+  strings:
+    - include: literal-string
+    - include: interpolated-string
+    - include: literal-heredoc
+    - include: interpolated-heredoc
+
+  literal-string:
+    - match: '"(?!"")'
+      scope: punctuation.definition.string.begin.a4d
+      push:
+        - meta_scope: string.quoted.double.a4d
+
+        - include: escaped-chars
+
+        - match: \n
+          scope: invalid.illegal.unclosed-string.a4d
+          pop: true
+
+        - match: '"'
+          scope: punctuation.definition.string.end.a4d
+          set: after-string
+
+  interpolated-string:
+    - match: "'(?!'')"
+      scope: punctuation.definition.string.begin.a4d
+      push:
+        - meta_scope: string.interpolated.a4d
+
+        # Because we can't do look-behind matching and \b won't work
+        # at the beginning of the interpolated collection pattern, we need
+        # one pattern that starts at the beginning of the interpolated string
+        # and another one that matches after the first character.
+        - include: initial-interpolated-collection
+
+        - match: ''
+          set:
+            - meta_scope: string.interpolated.a4d
+
+            - include: interpolations
+            - include: escaped-chars
+
+            - match: "'"
+              scope: punctuation.definition.string.end.a4d
+              set: after-string
+
+            - match: '[\n\r]'
+              scope: invalid.illegal.unclosed-string.a4d
+              pop: true
+
+  literal-heredoc:
+    - match: '"""'
+      scope: punctuation.definition.string.begin.a4d
+      push:
+        - meta_scope: string.heredoc.a4d
+
+        - include: escaped-chars
+
+        - match: '"""'
+          scope: punctuation.definition.string.end.a4d
+          pop: true
+
+  interpolated-heredoc:
+    - match: "'''"
+      scope: punctuation.definition.string.begin.a4d
+      push:
+        - meta_scope: string.heredoc.interpolated.a4d
+
+        # Because we can't do look-behind matching and \b won't work
+        # at the beginning of the interpolated collection pattern, we need
+        # one pattern that starts at the beginning of the interpolated string
+        # and another one that matches after the first character.
+        - include: initial-interpolated-collection
+
+        - match: ''
+          set:
+            - meta_scope: string.heredoc.interpolated.a4d
+
+            - include: interpolations
+            - include: escaped-chars
+
+            - match: "'''"
+              scope: punctuation.definition.string.end.a4d
+              pop: true
+
+  interpolations:
+    - include: interpolated-var
+    - include: interpolated-collection
+    - include: interpolated-field
+    - include: interpolated-expression
+
+  interpolated-var:
+    # Local variable followed by optional index and/or character ref.
+    # Nested indexes are not supported.
+    # Note that an interpolated local variable name may not contain spaces.
+    - match: '\$\w+\b'
+      scope: variable.other.local.a4d
+      push: interpolated-suffix
+
+  initial-interpolated-collection:
+    - match: '(?={{interpolated_collection}})'
+      push: inside-interpolated-collection
+
+  interpolated-collection:
+    # Non-word character followed by built-in collection followed by index and possible character ref.
+    # Note we have to explicitly look for \\[nrt] because those escape sequences end in a word character.
+    - match: '(?=(?:^|\W|\\[nrt]){{interpolated_collection}})'
+      push:
+        - match: \\[nrt]
+          scope: constant.character.escape.a4d
+          set: inside-interpolated-collection
+
+        - match: ''
+          set: inside-interpolated-collection
+
+  inside-interpolated-collection:
+    - match: '_(?:form|query|request)|globals|session(?={{interpolated_index}}{{interpolated_character_ref}}?)'
+      scope: support.function.built-in-collection.a4d
+      set: interpolated-suffix
+
+  interpolated-field:
+    # Field followed by possible numeric character reference
+    - match: '(\[)(\w+(?: \w+)*)(\])(\w+(?: \w+)*)'
+      captures:
+        0: meta.field-reference.a4d
+        1: punctuation.section.brackets.table.begin.a4d
+        2: entity.name.table.a4d
+        3: punctuation.section.brackets.table.end.a4d
+        4: entity.name.field.a4d
+      push: interpolated-character-ref
+
+  # pushed from interpolations
+  interpolated-suffix:
+    - match: '(?={{interpolated_index}})'
+      set:
+        - match: '\{'
+          scope: punctuation.section.index.begin.a4d
+          set:
+            - meta_scope: meta.index.a4d
+
+            - match: '\}'
+              scope: punctuation.section.index.end.a4d
+              set:
+                - match: '(?=\{)'
+                  set: interpolated-suffix
+
+                - match: '(?=\[\[)'
+                  set: interpolated-character-ref
+
+                - match: '(?={{interpolated_collection}})'
+                  set: inside-interpolated-collection
+
+                - match: ''
+                  pop: true
+
+            - match: "[']{1,3}"
+              scope: invalid.illegal.unexpected-token.a4d
+              pop: true
+
+            - match: ''
+              push: index-expression-interpolated
+
+    - include: interpolated-character-ref
+
+    - match: ''
+      pop: true
+
+  interpolated-character-ref:
+    - match: '(?={{interpolated_character_ref}})'
+      set:
+        - match: '\[\['
+          scope: punctuation.section.character-ref.begin.a4d
+          set:
+            - meta_scope: meta.character-ref.a4d
+
+            - match: '\]\]'
+              scope: punctuation.section.character-ref.end.a4d
+              set:
+                - match: '(?={{interpolated_collection}})'
+                  set: inside-interpolated-collection
+
+                - match: ''
+                  pop: true
+
+            - match: '\d+'
+              scope: constant.numeric.a4d
+
+    - match: ''
+      pop: true
+
+  interpolated-expression:
+    - match: '(?<!\\)`\s*`'
+      scope: invalid.illegal.empty-interpolated-expression.a4d
+
+    - match: '(?<!\\)`(?=[^`]++`)'
+      scope: punctuation.section.interpolated-expression.begin.a4d
+      push:
+        - match: '(?<!\\)`'
+          scope: punctuation.section.interpolated-expression.end.a4d
+          set:
+            - match: '(?={{interpolated_collection}})'
+              set: inside-interpolated-collection
+
+            - match: ''
+              pop: true
+
+        - match: ''
+          push: expression-interpolated
+
+  after-string:
+    - include: allow-line-continuation
+
+    - match: '(?=\[\[)'
+      set:
+        - include: character-ref
+
+        - match: ''
+          pop: true
+
+    - match: ''
+      pop: true
+
+  escaped-chars:
+    - match: \\[nrt"\'\\]
+      scope: constant.character.escape.a4d
+
+  #
+  # Other expressions
+  #
+  date:
+    - match: \!\d{1,2}([/. \-])\d{1,2}\1\d{1,4}\!
+      scope: constant.other.date.a4d
+
+    # Flag anything else between pairs of !! as invalid
+    - match: \!.*?\!
+      scope: invalid.illegal.date.a4d
+
+  time:
+    - match: '\?\d{1,2}([: ])\d{1,2}\1\d{1,2}\?'
+      scope: constant.other.time.a4d
+
+    # Flag anything else between pairs of ?? as invalid, be sure to allow for ?+/?- bitwise operators
+    - match: '\?[^-+].*?\?(?![-+])'
+      scope: invalid.illegal.time.a4d
+
+  table-or-field:
+    - match: '{{table_reference}}({{identifier}})'
+      captures:
+        0: meta.field-reference.a4d
+        1: punctuation.section.brackets.table.begin.a4d
+        2: entity.name.table.a4d
+        3: punctuation.section.brackets.table.end.a4d
+        4: entity.name.field.a4d
+      push: allow-character-ref
+
+    - match: '{{table_reference}}'
+      captures:
+        0: meta.table-reference.a4d
+        1: punctuation.section.brackets.table.begin.a4d
+        2: entity.name.table.a4d
+        3: punctuation.section.brackets.table.end.a4d
+
+  #
+  # suffixes
+  #
+  index:
+    - match: '\{'
+      scope: punctuation.section.index.begin.a4d
+      push: inside-index
+
+  inside-index:
+    - meta_scope: meta.index.a4d
+
+    - include: allow-line-continuation
+
+    - match: '\}'
+      scope: punctuation.section.index.end.a4d
+      set:
+        - include: allow-line-continuation
+
+        - match: '\s*(\{)'
+          captures:
+            1: punctuation.section.index.begin.a4d
+          set: inside-index
+
+        - include: character-ref
+
+        - match: ''
+          pop: true
+
+    - match: ''
+      push: index-expression
+
+  character-ref:
+    - match: '\s*(\[\[\s*\]\])'
+      scope: invalid.illegal.empty-character-ref.a4d
+
+    - match: '\s*(\[\[)'
+      captures:
+        1: punctuation.section.character-ref.begin.a4d
+      push:
+        - meta_scope: meta.character-ref.a4d
+
+        - include: allow-line-continuation
+
+        - match: '\]\]'
+          scope: punctuation.section.character-ref.end.a4d
+          pop: true
+
+        - match: ''
+          push: character-ref-expression
+
+  allow-index-or-character-ref:
+    - include: allow-line-continuation
+
+    - match: '(?=\s*\{)'
+      set:
+        - include: index
+
+        - match: ''
+          pop: true
+
+    - match: '(?=\s*\[\[)'
+      set:
+        - include: character-ref
+
+        - match: ''
+          pop: true
+
+    - match: ''
+      pop: true
+
+  allow-index-and-character-ref:
+    - include: allow-line-continuation
+
+    - match: '(?=\s*\{)'
+      set:
+        - include: index
+
+        - match: ''
+          pop: true
+
+    - match: '\[\['
+      scope: invalid.illegal.unexpected-token.a4d
+      pop: true
+
+    - match: ''
+      pop: true
+
+  allow-character-ref:
+    - match: '(?=\s*\[\[)'
+      set:
+        - include: character-ref
+
+        - match: ''
+          pop: true
+
+    - match: ''
+      pop: true
+
+  #
+  # methods
+  #
+  method-definition:
+    - match: '\b(?i)(method){{irb}}'
+      captures:
+        0: meta.method.a4d
+        1: storage.type.function.a4d
+      push: [inside-method-without-meta, method-name-without-meta]
+
+  inside-method-without-meta:
+    - match: ''
+      set: inside-method
+
+  method-name-without-meta:
+    - match: ''
+      set: method-name
+
+  method-name:
+    - meta_content_scope: meta.method.a4d meta.method.name.a4d
+
+    - include: allow-line-continuation
+
+    - match: (")(_(?:{{identifier_trailer}})?{{irb}})(")
+      captures:
+        1: punctuation.definition.method-name.begin.a4d
+        2: entity.name.function.hidden.a4d
+        3: punctuation.definition.method-name.end.a4d
+      set: after-method-name
+
+    - match: (")({{identifier}})(")
+      captures:
+        1: punctuation.definition.method-name.begin.a4d
+        2: entity.name.function.a4d
+        3: punctuation.definition.method-name.end.a4d
+      set: after-method-name
+
+    - match: (")([^"]+)(")
+      captures:
+        1: punctuation.definition.method-name.begin.a4d
+        2: invalid.illegal.name.a4d
+        3: punctuation.definition.method-name.end.a4d
+      set: after-method-name
+
+    - match: '\S+'
+      scope: invalid.illegal.name.a4d
+      set: after-method-name
+
+    - match: \n
+      scope: invalid.illegal.expected-method-name.a4d
+      pop: true
+
+  after-method-name:
+    - include: allow-line-continuation
+
+    - match: \(\s*\)
+      scope: meta.method.parameters.a4d invalid.illegal.expected-parameter.a4d
+      pop: true
+
+    - match: \(
+      scope: punctuation.section.parameters.begin.a4d
+      set: method-param-or-ref
+
+    - include: end-of-method-declaration
+
+  method-param-or-ref-without-meta:
+    - match: ''
+      set: method-param-or-ref
+
+  method-param-or-ref:
+    - meta_scope: meta.method.parameters.a4d
+
+    - include: allow-line-continuation
+
+    - match: '\s*(&)'
+      captures:
+        1: storage.modifier.reference.a4d
+      set:
+        - include: allow-line-continuation
+
+        - match: '(?=\$)'
+          set: method-param
+
+    - match: ''
+      set: method-param
+
+  method-param:
+    - meta_scope: meta.method.parameters.a4d
+
+    - include: not-end-of-statement
+
+    - match: '(?=\$)'
+      set: method-param-name
+
+    - include: end-of-method-params
+
+  method-param-name:
+    - meta_scope: meta.method.parameters.a4d
+
+    - match: '\${{identifier}}'
+      scope: variable.parameter.function.a4d
+      set: after-method-param-name-without-meta
+
+    - match: '\S+'
+      scope: invalid.illegal.parameter-name.a4d
+      set: after-method-param-name-without-meta
+
+  after-method-param-name-without-meta:
+    - match: ''
+      set: after-method-param-name
+
+  after-method-param-name:
+    - match: '\s*(=)'
+      captures:
+        1: punctuation.separator.default-parameter.a4d
+      set:
+        - meta_scope: meta.method.parameters.a4d
+
+        - match: '(?=[;)])'
+          set: after-method-param-name-inner
+
+        - include: allow-line-continuation
+        - include: not-end-of-statement
+
+        - match: ''
+          push: parameter-expression
+
+    - match: ''
+      set: after-method-param-name-inner
+
+  after-method-param-name-inner:
+    - meta_scope: meta.method.parameters.a4d
+
+    - include: not-end-of-statement
+
+    - match: '\s+'
+      scope: meta.method.parameters.a4d
+
+    - include: allow-line-continuation
+
+    - match: '(?=\))'
+      set: method-param-or-ref
+
+    - match: ';'
+      scope: punctuation.separator.parameter-declaration.a4d
+      set: method-param-or-ref-without-meta
+
+    - match: '\S+'
+      scope: invalid.illegal.unexpected-token.a4d
+      set: method-param-or-ref
+
+  end-of-method-params:
+    - meta_scope: meta.method.parameters.a4d
+
+    - match: \)
+      scope: punctuation.section.parameters.end.a4d
+      set: end-of-method-declaration
+
+  end-of-method-declaration:
+    - include: allow-line-continuation
+    - include: line-comment
+
+    - match: '\S+'
+      scope: invalid.illegal.unexpected-token.a4d
+
+    - match: $
+      set: after-end-of-method-declaration
+
+    - include: unexpected-token
+
+  after-end-of-method-declaration:
+    - include: allow-line-continuation
+
+    - match: '{{end_of_statement}}'
+      pop: true
+
+    - match: '\S+'
+      scope: invalid.illegal.unexpected-token.a4d
+      pop: true
+
+  inside-method:
+    - meta_content_scope: meta.method.a4d meta.method.body.a4d
+
+    - match: '\b(?i:end method){{irb}}'
+      scope: meta.method.a4d storage.type.function.end.a4d
+      pop: true
+
+    - include: statements
+
+  inside-block:
+    - match: '%>'
+      scope: punctuation.section.embedded.end.inside-block.a4d
+      push:
+        - clear_scopes: true
+        - meta_scope: text.html.a4d
+
+        - match: '<%[\t ]*=?'
+          scope: punctuation.section.embedded.begin.inside-block.a4d
+          pop: true
+
+        # Eat whitespace so that the lookahead on the next match pattern can match the next line if appropriate
+        - match: '\s+$'
+          push:
+            - match: ^
+              pop: true
+
+        # If the next occurrence of a < or > is a >, we are inside a tag.
+        # If it looks like an attribute is being defined, we are probably in a tag.
+        - match: '(\s*")?(?=[^<>]*>|\s+\w+=\s*")'
+          scope: string.quoted.double.html punctuation.definition.string.end.html
+          push: # use a push and an include so that the root scope (text.html.basic) isn't applied
+            - meta_scope: meta.tag.after-embedded-a4d.any.html
+            - include: scope:text.html.basic#tag-stuff
+          with_prototype:
+            - match: '(?=<%)'
+              pop: true
+
+            - match: '>'
+              scope: punctuation.definition.tag.end.html
+              set: scope:text.html.a4d#html
+              with_prototype:
+                - match: '(?=<%)'
+                  pop: true
+
+        - match: ''
+          push: scope:text.html.a4d#html
+          with_prototype:
+            - match: '(?=<%)'
+              pop: true
+
+  #
+  # syntax
+  #
+
+  # This context always pops
+  inside-group:
+    - meta_scope: meta.group.a4d
+
+    - include: allow-line-continuation
+
+    - match: \)
+      scope: punctuation.section.group.end.a4d
+      pop: true
+
+    - match: '(?:\n|{{statement_terminators}})'
+      scope: invalid.illegal.expected-close-parens.a4d
+      pop: true
+
+    # This match pattern has been added to disable the illegal highlighting where a statement ends unexpectedly
+    # - to more closely match other syntaxes
+    - match: '\s+'
+      scope: ''
+
+    - match: ''
+      push: group-expression
+
+  function-args:
+    - match: '\s*(\()'
+      captures:
+        1: punctuation.section.group.begin.a4d
+      set: inside-function-args
+
+  inside-function-args:
+    - meta_scope: meta.function-call.a4d meta.group.a4d
+
+    - include: allow-line-continuation
+
+    - match: ;
+      scope: punctuation.separator.argument.a4d
+
+    - match: \)
+      scope: punctuation.section.group.end.a4d
+      pop: true
+
+    - match: '(?:\n|{{statement_terminators}})'
+      scope: invalid.illegal.expected-close-parens.a4d
+      pop: true
+
+    # This match pattern has been added to disable the illegal highlighting where a statement ends unexpectedly
+    # - to more closely match other syntaxes
+    - match: '\s+'
+      scope: ''
+
+    - match: ''
+      push: parameter-expression
+
+  line-continuation-chars:
+    - match: '\\\\'
+      scope: punctuation.separator.continuation.line.a4d
+      push:
+        # Line comments are allowed after line continuation.
+        - match: '\s*((//).*)(?=$)'
+          captures:
+            1: comment.line.a4d
+            2: punctuation.definition.comment.a4d
+
+        - match: '\S.*'
+          scope: invalid.illegal.expected-end-of-line.a4d
+
+        - match: $
+          set:
+            - match: ^
+              pop: true
+
+  allow-line-continuation:
+    - match: '[\t ]+'
+    - include: line-continuation-chars
+
+  expect-end-of-statement:
+    - match: '(?=\s*{{statement_terminators}})'
+
+    - match: '\S+'
+      scope: invalid.illegal.expected-end-of-statement.a4d
+
+  expect-not-end-of-statement:
+    - include: not-end-of-statement
+
+    - match: '\s*(?=\S)'
+      pop: true
+
+  not-end-of-statement:
+    - match: \n
+      scope: invalid.illegal.unexpected-end-of-statement.a4d
+      pop: true
+
+    - match: '{{statement_terminators}}'
+      set:
+        - match: \n
+          scope: invalid.illegal.unexpected-end-of-statement.a4d
+          pop: true
+
+    - include: allow-line-continuation
+
+  #
+  # errors
+  #
+  unexpected-token:
+    - match: \n
+      scope: invalid.illegal.missing-token.a4d
+      pop: true
+
+    - match: '\S+'
+      scope: invalid.illegal.unexpected-token.a4d
+      pop: true
+
+  illegal-names:
+    - match: '(?:{{language_constants}}|{{support_constants}}|{{reserved_words}}|{{commands}}|{{library_methods}})'
+      scope: invalid.illegal.name.a4d
+      pop: true
+

@@ -1,0 +1,72 @@
+%YAML 1.2
+---
+# http://www.sublimetext.com/docs/3/syntax.html
+name: HTML (Active4D)
+file_extensions:
+  - a4d
+  - a4p
+scope: text.html.a4d
+
+contexts:
+  main:
+    - include: html
+
+  html:
+    - match: ''
+      set:
+        - include: scope:text.html.basic
+      with_prototype:
+        - include: a4d-punctuation-begin
+
+  a4d-punctuation-begin:
+    - match: '<%'
+      scope: punctuation.section.embedded.begin.a4d
+
+      push:
+        - match: '[\t ]*='
+          scope: punctuation.section.embedded.begin.a4d
+          set: begin-embedded-a4d-expression
+
+        - match: ''
+          set: [close-embedded-a4d, begin-embedded-a4d]
+
+  begin-embedded-a4d:
+    - meta_content_scope: source.a4d.embedded.html
+
+    - match: '(?=%>)'
+      pop: true
+
+    - include: scope:source.a4d
+
+  begin-embedded-a4d-expression:
+    - meta_content_scope: source.a4d.embedded.html
+
+    # This matches if the expression is empty
+    - match: '\s*(;|%>)'
+      captures:
+        1: invalid.illegal.unexpected-token.a4d
+      pop: true
+
+    - match: ''
+      set: embedded-a4d-expression
+
+  embedded-a4d-expression:
+    - meta_scope: source.a4d.embedded.html
+
+    # We know the expression is not empty, this will only match after an expression
+    - match: '(?=%>)'
+      set: close-embedded-a4d
+
+    # We know the expression is not empty, this will only match after an expression
+    - match: ';'
+      scope: punctuation.separator.embedded-expression.a4d
+      push: scope:source.a4d#embedded-format-expression
+
+    - match: ''
+      set: embedded-a4d-expression
+      push: scope:source.a4d#embedded-expression
+
+  close-embedded-a4d:
+    - match: '%>'
+      scope: punctuation.section.embedded.end.a4d
+      pop: true

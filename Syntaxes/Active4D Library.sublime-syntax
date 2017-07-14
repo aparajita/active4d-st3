@@ -1,0 +1,93 @@
+%YAML 1.2
+---
+name: Active4D Library
+file_extensions:
+  - a4l
+scope: library.a4d
+
+variables:
+  line_comment_begin: '//'
+
+  statement_terminators: '(?:$|{{line_comment_begin}}|%>)'
+  end_of_statement: '(?=[\t ]*{{statement_terminators}})'
+
+  # Identifiers can use any currency symbol *except* $, so we can't use \p{Sc} to match,
+  # we need to specify all of the currency symbols except for $.
+  currency: '€¥¢£₽₨₩฿₺₮₱₭₴₦৲৳﷼₹₲₪₡₫₵₢₸₤₳₥₠₣₰₧₯₶'
+
+  # An identifier may start with any Unicode character with properties:
+  #   Letter
+  #   Letter number
+  #   Connector punctuation
+  #   Currency symbol (except '$')
+  identifier_start: '\p{L}\p{Nl}\p{Pc}{{currency}}'
+
+  # Identifier non-start characters may be any Unicode character with properties:
+  #   Letter
+  #   Letter number
+  #   Connector punctuation
+  #   Decimal number
+  #   Non-spacing mark
+  #   Currency symbol (except '$')
+  identifier_char: '\p{L}\p{Nl}\p{Pc}\p{Nd}\p{Mn}{{currency}}'
+
+  # Identifiers may contain spaces, so we have to match a start character,
+  # potentially alone, followed by zero or more identifier_char or space,
+  # followed by an identifier_char.
+  identifier_trailer: '[{{identifier_char}} ]*[{{identifier_char}}]'
+  irb: '(?!{{identifier_trailer}})'  # equivalent for \b for the right side of an identifier
+  identifier: '[{{identifier_start}}](?:{{identifier_trailer}})?{{irb}}'
+
+contexts:
+  main:
+    - match: ''
+    - meta_scope: meta.namespace.library.a4d
+    - meta_content_scope: source.a4d
+
+    - include: 'scope:source.a4d#comments'
+
+    # The first statement must be 'library'
+    - include: library
+
+  library:
+    - match: '\b(?i)library\b'
+      scope: storage.type.library.a4d
+      push:
+        - match: '\s+\".+?\"'
+          scope: entity.name.namespace.a4d
+          set: inside-library
+
+        - match: '\s*(.+?)$'
+          captures:
+            1: invalid.illegal.invalid-library-name.a4d
+          pop: true
+
+    - match: '\S+'
+      scope: invalid.illegal.unexpected-token.a4d
+
+  inside-library:
+    - meta_scope: meta.block.library.a4d
+
+    # We don't want to recognize %> as the end of source, so we use with_prototype
+    # to effectively override source.a4d#inside-block and source.a4d#root-a4d.
+    - match: ''
+      set:
+        - include: statements
+      with_prototype:
+        - match: '%>'
+          scope: invalid.illegal.unexpected-token.a4d
+
+  # Valid statements in a library are: import, define, method definition, end library.
+  # Anything else is an error.
+  statements:
+    - include: 'scope:source.a4d#comments'
+
+    - match: '\b(?i)end library\b'
+      scope: storage.type.library.end.a4d
+      pop: true
+
+    - include: 'scope:source.a4d#define'
+    - include: 'scope:source.a4d#method-definition'
+
+    - match: '\S+'
+      scope: invalid.illegal.unexpected-token.a4d

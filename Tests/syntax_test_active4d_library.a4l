@@ -1,0 +1,103 @@
+// SYNTAX TEST "Packages/User/Active4D/Syntaxes/Active4D Library.sublime-syntax"
+
+// <- meta.namespace.library.a4d
+
+library foo
+//      ^^^ invalid.illegal.invalid-library-name.a4d
+
+// The first valid statement must be 'library'
+   method "foo"
+// ^^^^^^ invalid.illegal.unexpected-token.a4d
+//        ^^^^^ invalid.illegal.unexpected-token.a4d
+   end method
+// ^^^ invalid.illegal.unexpected-token.a4d
+//     ^^^^^^ invalid.illegal.unexpected-token.a4d
+
+define(kTest; 7)
+// <- invalid.illegal.unexpected-token.a4d
+
+   library "foo"
+// ^^^^^^^ storage.type.library.a4d
+//         ^^^^^ entity.name.namespace.a4d
+
+    define(kTest; "foo" + "bar") // comment
+//  ^^^^^^ keyword.other.a4d
+//        ^ punctuation.section.group.begin.a4d
+//         ^^^^^ entity.name.constant.a4d
+//                ^^^^^ string.quoted.double.a4d
+//                      ^ keyword.operator.arithmetic.a4d
+//                        ^^^^^ string.quoted.double.a4d
+//                             ^ punctuation.section.group.end.a4d
+
+    // defined constant may contains spaces
+    define(kFoo bar; "foo" + "bar")
+//         ^^^^^^^^ entity.name.constant.a4d
+
+    // define may use line continuation
+    define \\ // comment
+    ( \\
+        kTest \\ // comment
+        ; \\
+        "foo" + "bar" \\ // comment
+    )
+//  ^ punctuation.section.group.end.a4d
+
+    // define must use a plain identifier
+    define($kTest; "foo")
+//         ^^^^^^^ invalid.illegal.unexpected-token.a4d
+
+    // Only import, define, and method definitions are allowed at the top level
+    write("foo")
+//  ^^^^^^^^^^^^ invalid.illegal.unexpected-token.a4d
+
+    // hidden methods
+    method "__load__"
+//          ^^^^^^^^ entity.name.function.hidden.a4d
+        _reload
+    end method
+
+    method "_reload"
+//          ^^^^^^^ entity.name.function.hidden.a4d
+
+        self{"foo"}{"bar"} := self{"bar"}[[$count + 1]]
+//      ^^^^ variable.language.a4d
+//          ^^^^^^^^^^^^^^ meta.index.a4d
+//                            ^^^^ variable.language.a4d
+//                                ^^^^^^^ meta.index.a4d
+//                                       ^^^^^^^^^^^^^^ meta.character-ref.a4d
+
+        // self may not be followed by character ref
+        $foo := self[[7]]
+//                  ^^ invalid.illegal.unexpected-token.a4d
+//                     ^^ invalid.illegal.stray-close-bracket.a4d
+
+    end method
+
+    // Methods
+    method "foo" ( $foo ; $bar = "bar" )
+    //           ^^^^^^^^^^^^^^^^^^^^^^^ meta.method.parameters.a4d
+    //           ^ punctuation.section.parameters.begin.a4d
+    //             ^^^^ variable.parameter.function.a4d
+    //                  ^ punctuation.separator.parameter-declaration.a4d
+    //                    ^^^^ variable.parameter.function.a4d
+    //                         ^ punctuation.separator.default-parameter.a4d
+    //                           ^^^^^ string.quoted.double.a4d
+    //                                 ^ punctuation.section.parameters.end.a4d
+    //                                  ^ meta.method.a4d meta.method.body.a4d
+
+        // %> is an error in a library since it isn't embedded source
+        if ($bar = "bar") %>
+//                        ^^ invalid.illegal.unexpected-token
+            write("Hello there!")
+//          ^^^^^ library.a4d meta.namespace.library.a4d source.a4d meta.method.a4d meta.method.body.a4d meta.block.if.a4d support.function.a4d
+        else
+            write('Hi, $bar.')
+        end if
+    end method
+
+   end library
+// ^^^^^^^^^^^ storage.type.library.end.a4d
+
+// Anything after 'end library' is an error
+define(kFoo; "bar")
+// <- invalid.illegal.unexpected-token.a4d

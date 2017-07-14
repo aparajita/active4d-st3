@@ -1,0 +1,1689 @@
+// SYNTAX TEST "Packages/User/Active4D/Syntaxes/HTML (Active4D).sublime-syntax"
+
+<html>
+
+<%
+
+/***********************
+    comments
+************************/
+
+// A line comment
+// ^ comment.line
+// <- punctuation.definition.comment
+
+/* A block comment */
+// ^ comment.block
+// <- punctuation.definition.comment.begin
+//                 ^ punctuation.definition.comment.end
+
+/***********************
+    strings
+************************/
+    "a string"
+//  ^^^^^^^^^^ string.quoted.double.a4d
+//  ^ punctuation.definition.string.begin.a4d
+//           ^ punctuation.definition.string.end.a4d
+
+// Strings can have escape characters
+"LF\n CR\r tab\t quote\""
+// ^^ constant.character.escape.a4d
+//      ^^ constant.character.escape.a4d
+//            ^^ constant.character.escape.a4d
+//                    ^^ constant.character.escape.a4d
+
+// Strings can take a character ref suffix
+"foo"[[$foo + 7]]
+//   ^^ meta.character-ref.a4d punctuation.section.character-ref.begin.a4d
+//     ^ meta.character-ref.a4d variable.other.local.a4d
+//             ^^ punctuation.section.character-ref.end.a4d
+
+// Line continuation may be used with a character ref suffix
+"foo" \\ // a comment
+    [[ \\ // another comment
+    $foo + 7 \\ // yet another comment
+    ]]
+//  ^^ meta.character-ref.a4d punctuation.section.character-ref.end.a4d
+
+// Empty character refs are marked invalid
+"foo"[[ ]]
+//   ^^^^^ invalid.illegal.empty-character-ref.a4d
+
+// Unclosed strings are an error
+"unclosed
+//       ^ invalid.illegal.unclosed-string.a4d
+
+// Single quotes denotes an interpolated string
+    'interpolated'
+//  ^^^^^^^^^^^^^^ string.interpolated.a4d
+//  ^ punctuation.definition.string.begin.a4d
+//               ^ punctuation.definition.string.end.a4d
+
+// Interpolated strings can take a character ref suffix
+'foo'[[$foo + 7]]
+//   ^^ meta.character-ref.a4d punctuation.section.character-ref.begin.a4d
+//     ^ meta.character-ref.a4d variable.other.local.a4d
+//             ^^ punctuation.section.character-ref.end.a4d
+
+// Line continuation may be used with a character ref suffix
+'foo' \\ // a comment
+    [[ \\ // another comment
+    $foo + 7 \\ // yet another comment
+    ]]
+//  ^^ meta.character-ref.a4d punctuation.section.character-ref.end.a4d
+
+// Empty character refs are marked invalid
+'foo'[[ ]]
+//   ^^^^^ invalid.illegal.empty-character-ref.a4d
+
+// Unclosed interpolated strings are an error
+'unclosed
+//       ^ invalid.illegal.unclosed-string.a4d
+
+// Interpolations
+
+// Local var with indexes and character ref
+write('$i: $people{"names"}{$i}[[1]].')
+//     ^^ string.interpolated.a4d variable.other.local.a4d
+//         ^^^^^^^ variable.other.local.a4d
+//                ^^^^^^^^^^^^^ meta.index.a4d
+//                ^ punctuation.section.index.begin.a4d
+//                        ^ punctuation.section.index.end.a4d
+//                         ^ punctuation.section.index.begin.a4d
+//                          ^^ variable.other.local.a4d
+//                            ^ punctuation.section.index.end.a4d
+//                             ^^^^^ meta.character-ref.a4d
+//                             ^^ punctuation.section.character-ref.begin.a4d
+//                               ^ constant.numeric.a4d
+//                                ^^ punctuation.section.character-ref.end.a4d
+
+// Local var with character ref
+write('$i: $names[[1]].')
+//     ^^ string.interpolated.a4d variable.other.local.a4d
+//         ^^^^^^ variable.other.local.a4d
+//               ^^^^^ meta.character-ref.a4d
+//               ^^ punctuation.section.character-ref.begin.a4d
+//                 ^ constant.numeric.a4d
+//                  ^^ punctuation.section.character-ref.end.a4d
+
+// Empty index is ok but doesn't interpolate
+'empty index: _form{ }'
+//                 ^^^ meta.index.a4d
+
+// Built in collections
+
+// Collection name without suffix is not interpolated
+  '_form: _form{"foo\n" + $bar}'
+// ^^^^^ string.interpolated.a4d
+//        ^^^^^ support.function.built-in-collection.a4d
+
+// Empty character ref is not recognized
+'_query: _query{"bar"}[[  ]]'
+//                    ^^^^^^ string.interpolated.a4d - meta.character-ref.a4d
+
+// Character ref can only contain decimal digits
+'_query: _query{"bar"}[[$index]]'
+//                    ^^^^^^^^^^ string.interpolated.a4d - meta.character-ref.a4d
+
+'_query: _query{"bar"}[[0x1]]'
+//                    ^^^^^^^ string.interpolated.a4d - meta.character-ref.a4d
+
+// Character ref may not contain spaces
+'_query: _query{"bar"}[[ 1 ]]'
+//                    ^^^^^^^ string.interpolated.a4d - meta.character-ref.a4d
+
+'_request = _request{"baz"}'
+//          ^^^^^^^^ support.function.built-in-collection.a4d
+
+'globals: globals{$name}'
+//        ^^^^^^^ support.function.built-in-collection.a4d
+
+// Collection name must start at a word boundary
+'test_query{"foo"}'
+//   ^^^^^^ string.interpolated.a4d - support.function.built-in-collection.a4d
+
+'27_query{"foo"}'
+// ^^^^^^ string.interpolated.a4d - support.function.built-in-collection.a4d
+
+'\b_query{"foo"} foo_query{"foo"}'
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string.interpolated.a4d - support.function.built-in-collection.a4d
+
+'\n_query{"foo"}'
+// ^^^^^^ support.function.built-in-collection.a4d
+
+'\r_query{"foo"}'
+// ^^^^^^ support.function.built-in-collection.a4d
+
+'\t_query{"foo"}'
+// ^^^^^^ support.function.built-in-collection.a4d
+
+// Make sure collection names directly following other collection refs are recognized
+'`$foo + 7`_query{"foo"}globals{"bar"}{"baz"}_form{"yo"}[[13]]_request{"name"}'
+//         ^^^^^^ support.function.built-in-collection.a4d
+//               ^^^^^^^ meta.index.a4d
+//                      ^^^^^^^ support.function.built-in-collection.a4d
+//                             ^^^^^^^^^^^^^^ meta.index.a4d
+//                                           ^^^^^ support.function.built-in-collection.a4d
+//                                                ^^^^^^ meta.index.a4d
+//                                                      ^^^^^^ meta.character-ref.a4d
+//                                                            ^^^^^^^^ support.function.built-in-collection.a4d
+//                                                                    ^^^^^^ meta.index.a4d
+
+    '_query{"foo"}'
+//   ^^^^^^ support.function.built-in-collection.a4d
+
+// Backslash before { prevents interpolation of built in collection
+write('session\{"user-id"} = session{"user-id"}')
+//             ^ string.interpolated.a4d
+//                           ^^^^^^^ support.function.built-in-collection.a4d
+//                                  ^ meta.index.a4d punctuation.section.index.begin.a4d
+//                                            ^ meta.index.a4d punctuation.section.index.end.a4d
+
+// Field with optional character ref
+write('Hello \n[contacts]name!')
+//             ^^^^^^^^^^^^^^ meta.field-reference.a4d
+
+write('[contacts]name[[7]]!')
+//     ^^^^^^^^^^^^^^ meta.field-reference.a4d
+//      ^^^^^^^^ entity.name.table.a4d
+//               ^^^^ entity.name.field.a4d
+//                   ^^^^^ meta.character-ref.a4d
+
+// Expressions
+write('The date is `string(current date; system date long)`.')
+//                 ^ punctuation.section.interpolated-expression.begin.a4d
+//                                                        ^ punctuation.section.interpolated-expression.end.a4d
+
+write('Count: `$count + 1`.')
+//             ^^^^^^ variable.other.local.a4d
+//                      ^ constant.numeric.a4d
+
+// Line comments/continuation are not recognized in interpolated expressions
+write('Count: `$count + 1 // foo`')
+//                        ^^ keyword.operator.arithmetic.a4d
+
+write('Count: `$count + 1 \\ `')
+//                        ^^ keyword.operator.arithmetic.a4d
+
+
+/***********************
+    heredocs
+************************/
+
+// Empty heredoc
+    """"""
+//  ^^^ punctuation.definition.string.begin.a4d
+//     ^^^ punctuation.definition.string.end.a4d
+
+// Note we embed \""" to ensure that three quotes are not preceeded by \
+"""heredoc\""" string"""
+// <- string.heredoc.a4d punctuation.definition.string.begin.a4d
+//                   ^ string.heredoc.a4d punctuation.definition.string.end.a4d
+
+"""
+// <- string.heredoc.a4d punctuation.definition.string.begin.a4d
+heredoc
+"""
+// <- string.heredoc.a4d punctuation.definition.string.end.a4d
+
+'''Interpolated $foo heredoc string.'''
+// <- string.heredoc.interpolated.a4d punctuation.definition.string.begin.a4d
+//              ^ variable.other.local.a4d
+
+'''
+    $foo
+//  ^^^^ string.heredoc.interpolated.a4d variable.other.local.a4d
+_query{"foo"}
+// <- support.function.built-in-collection.a4d
+//    ^^^^^^^ meta.index.a4d
+//    ^ punctuation.section.index.begin.a4d
+//          ^ punctuation.section.index.end.a4d
+'''
+
+
+/***********************
+    parens
+************************/
+$foo := (($bar / 2) + 1) * 7;
+//      ^^^^^^^^^^^^^^^^ meta.group.a4d
+//      ^ punctuation.section.group.begin.a4d
+//       ^^^^^^^^^^ meta.group.a4d meta.group.a4d
+//       ^ punctuation.section.group.begin.a4d
+//                ^ meta.group.a4d meta.group punctuation.section.group.end.a4d
+//                     ^ punctuation.section.group.end.a4d
+
+// Stray close parens are marked
+callme($bar + 1)) + 7
+//              ^ invalid.illegal.stray-close-parens.a4d
+
+// Parens must be closed on the same line without line continuation
+callme(
+//     ^ invalid.illegal.expected-close-parens.a4d
+    $bar)
+//      ^ invalid.illegal.stray-close-parens.a4d
+
+callme( // comment
+//      ^^ invalid.illegal.expected-close-parens.a4d
+
+callme( %>
+//      ^^ invalid.illegal.expected-close-parens.a4d
+
+
+/***********************
+    numbers
+************************/
+
+0xabcdef
+// <- constant.numeric.a4d
+
+0xABCDEF
+// <- constant.numeric.a4d
+
+0x123dEF
+// <- constant.numeric.a4d
+
+0X123
+// <- constant.numeric.a4d
+
+13
+// <- constant.numeric.a4d
+
+13e27
+// <- constant.numeric.a4d
+
+13e-27
+// <- constant.numeric.a4d
+
+13.27
+// <- constant.numeric.a4d
+
+13.27e31
+// <- constant.numeric.a4d
+
+13.27e-31
+// <- constant.numeric.a4d
+
+.13
+// <- constant.numeric.a4d
+
+27.13
+// <- constant.numeric.a4d
+
+1,234
+// <- constant.numeric.a4d
+
+1,234,567
+// <- constant.numeric.a4d
+
+1,234,567.89
+// <- constant.numeric.a4d
+
+1.234.567,89
+// <- constant.numeric.a4d
+
+
+/***********************
+    date
+************************/
+
+!3/30/61!
+// <- constant.other.date
+
+!03/30/61!
+// <- constant.other.date
+
+!03/30/1961!
+// <- constant.other.date
+
+!03 30 1961!
+// <- constant.other.date
+
+!03.30.1961!
+// <- constant.other.date
+
+!03-30-1961!
+// <- constant.other.date
+
+!03/30 61!
+// <- invalid.illegal.date
+
+!03/300/61!
+// <- invalid.illegal.date
+
+
+/***********************
+    time
+************************/
+
+?1:2:3?
+// <- constant.other.time
+
+?01:02:03?
+// <- constant.other.time
+
+?01 02 03?
+// <- constant.other.time
+
+?01:123:03?
+// <- invalid.illegal.time
+
+?01:123 03?
+// <- invalid.illegal.time
+
+
+/***********************
+    operators
+************************/
+
+// Unary, may occur at the end of a statement
+
+    ++$foo
+//  ^^ keyword.operator.increment-decrement.a4d
+
+    --$foo
+//  ^^ keyword.operator.increment-decrement.a4d
+
+$foo++
+//  ^^ keyword.operator.increment-decrement.a4d
+
+$foo--
+//  ^^ keyword.operator.increment-decrement.a4d
+
+$ptr := ->[users]
+//      ^^ keyword.operator.pointer.a4d
+
+$foo := $ptr->
+//          ^^ keyword.operator.pointer.a4d
+
+// Binary
+
+// Assignment
+
+$foo := $bar
+//   ^^ keyword.operator.assignment.a4d
+
+$foo ::= $bar
+//   ^^^ keyword.operator.assignment.a4d
+
+$foo += $bar
+//   ^^ keyword.operator.assignment.a4d
+
+$foo -= $bar
+//   ^^ keyword.operator.assignment.a4d
+
+$foo *= $bar
+//   ^^ keyword.operator.assignment.a4d
+
+$foo %= $bar
+//   ^^ keyword.operator.assignment.a4d
+
+$foo /= $bar
+//   ^^ keyword.operator.assignment.a4d
+
+$foo \= $bar
+//   ^^ keyword.operator.assignment.a4d
+
+$foo ^= $bar
+//   ^^ keyword.operator.assignment.a4d
+
+$foo |= $bar
+//   ^^ keyword.operator.assignment.a4d
+
+$foo &= $bar
+//   ^^ keyword.operator.assignment.a4d
+
+$foo <<= $bar
+//   ^^^ keyword.operator.assignment.a4d
+
+$foo >>= $bar
+//   ^^^ keyword.operator.assignment.a4d
+
+// Binary operators require something after
+$foo +=
+//     ^ invalid.illegal.unexpected-end-of-statement.a4d
+
+// Bitwise
+
+$foo := 2 ^| 3 << 4 >> 5 ?+ 6 ?- 7 ?? 8
+//        ^^ keyword.operator.bitwise.a4d
+//             ^^ keyword.operator.bitwise.a4d
+//                  ^^ keyword.operator.bitwise.a4d
+//                       ^^ keyword.operator.bitwise.a4d
+//                            ^^ keyword.operator.bitwise.a4d
+//                                 ^^ keyword.operator.bitwise.a4d
+
+// Multiple uses
+
+$foo & $bar | $baz % $boo
+//   ^ keyword.operator.a4d
+//          ^ keyword.operator.a4d
+//                 ^ keyword.operator.arithmetic.a4d
+
+$foo = $bar
+//   ^ keyword.operator.a4d
+
+// Comparison
+
+$foo # $bar
+//   ^ keyword.operator.comparison.a4d
+
+$foo > $bar
+//   ^ keyword.operator.comparison.a4d
+
+$foo >= $bar
+//   ^^ keyword.operator.comparison.a4d
+
+$foo < $bar
+//   ^ keyword.operator.comparison.a4d
+
+$foo <= $bar
+//   ^^ keyword.operator.comparison.a4d
+
+$foo ~ $bar
+//   ^ keyword.operator.comparison.a4d
+
+$foo !~ $bar
+//   ^^ keyword.operator.comparison.a4d
+
+$foo =~ $bar
+//   ^^ keyword.operator.comparison.a4d
+
+$foo #~ $bar
+//   ^^ keyword.operator.comparison.a4d
+
+// Numeric
+
+$foo + $bar
+//   ^ keyword.operator.arithmetic.a4d
+
+$foo - $bar
+//   ^ keyword.operator.arithmetic.a4d
+
+$foo * $bar
+//   ^ keyword.operator.arithmetic.a4d
+
+$foo / $bar
+//   ^ keyword.operator.arithmetic.a4d
+
+$foo \ $bar
+//   ^ keyword.operator.arithmetic.a4d
+
+$foo ^ $bar{8}
+//   ^ keyword.operator.arithmetic.a4d
+
+// Binary operators require something after
+$foo +
+//    ^ invalid.illegal.unexpected-end-of-statement.a4d
+
+// Format
+
+write("Hello, {0}" % ($name))
+//                 ^ keyword.operator.format.a4d
+//                   ^^^^^^^ meta.format-args.a4d
+//                   ^ punctuation.section.format-args.begin.a4d
+//                         ^ punctuation.section.format-args.end.a4d
+
+write("Hello, {0}" %% ($name))
+//                 ^^ keyword.operator.format.a4d
+//                    ^^^^^^^ meta.format-args.a4d
+//                    ^ punctuation.section.format-args.begin.a4d
+//                          ^ punctuation.section.format-args.end.a4d
+
+write("Name: {0} {1}" %% ($firstname; $lastname))
+//                    ^^ keyword.operator.format.a4d
+//                       ^^^^^^^^^^^^^^^^^^^^^^^ meta.format-args.a4d
+//                       ^ punctuation.section.format-args.begin.a4d
+//                                  ^ punctuation.separator.format-args.a4d
+//                                             ^ punctuation.section.format-args.end.a4d
+
+write("Name: {0} {1}" %% ($firstname;
+//                                   ^ invalid.illegal.expected-close-parens.a4d
+
+// Format args have to be wrapped in parens
+write("Hello, {0}" %% $firstname)
+//                    ^^^^^^^^^^ invalid.illegal.unexpected-token.a4d
+
+// Common mistakes
+
+$foo ~= $bar  // should be =~
+//   ^^ invalid.illegal.unexpected-token.a4d
+
+$foo != $bar  // should be !~
+//   ^^ invalid.illegal.unexpected-token.a4d
+
+
+/***********************
+    vars
+************************/
+
+    $foo := "bar"
+//  ^^^^ variable.other.local.a4d
+
+    <>foo := "bar"
+//  ^^^^^ variable.other.interprocess.a4d
+
+// Unicode variable names work. The name contains 13 characters
+// and one combining mark, so the assertion tests for 14 characters.
+
+    $ΦжՆהسݕåǫकঘᏈ丵 := "bar"
+//  ^^^^^^^^^^^^^^ variable.other.local.a4d
+//                ^ source.a4d
+
+    <>ΦжՆהسݕåǫकঘᏈ丵 := "bar"
+//  ^^^^^^^^^^^^^^^ variable.other.interprocess.a4d
+//                 ^ source.a4d
+
+// Empty index is ok
+$foo{}
+//  ^^ meta.index.a4d
+
+<>foo{}
+//   ^^ meta.index.a4d
+
+// Vars can take indexes and/or character refs
+
+$foo{"names"}{$index + 1}
+//  ^^^^^^^^^^^^^^^^^^^^^ meta.index.a4d
+//  ^ punctuation.section.index.begin.a4d
+//          ^ punctuation.section.index.end.a4d
+//           ^ punctuation.section.index.begin.a4d
+//                      ^ punctuation.section.index.end.a4d
+
+<>foo{"names"}{$index + 1}
+//   ^^^^^^^^^^^^^^^^^^^^^ meta.index.a4d
+//   ^ punctuation.section.index.begin.a4d
+//           ^ punctuation.section.index.end.a4d
+//            ^ punctuation.section.index.begin.a4d
+//                       ^ punctuation.section.index.end.a4d
+
+$foo[[$index + 1]]
+//  ^^^^^^^^^^^^^^ meta.character-ref.a4d
+//  ^^ punctuation.section.character-ref.begin.a4d
+//              ^^ punctuation.section.character-ref.end.a4d
+
+<>foo[[$index + 1]]
+//   ^^^^^^^^^^^^^^ meta.character-ref.a4d
+//   ^^ punctuation.section.character-ref.begin.a4d
+//               ^^ punctuation.section.character-ref.end.a4d
+
+$foo{"names"}{$index + 1}[[$ref - 1]]
+//  ^^^^^^^^^^^^^^^^^^^^^ meta.index.a4d
+//                       ^^^^^^^^^^^^ meta.character-ref.a4d
+
+<>foo{"names"}{$index + 1}[[$ref - 1]]
+//   ^^^^^^^^^^^^^^^^^^^^^ meta.index.a4d
+//                        ^^^^^^^^^^^^ meta.character-ref.a4d
+
+$foo{"names"}{}
+// Whitespace/line continuation can be used with indexes and character refs
+$foo { 7 }
+//   ^^^^^ meta.index.a4d
+
+$foo \\ // comment
+    { \\ // comment
+        7 \\ // comment
+    }
+//  ^ meta.index.a4d punctuation.section.index.end.a4d
+
+$foo [[ $index + 1 ]]
+//   ^^^^^^^^^^^^^^^^ meta.character-ref.a4d
+//   ^^ punctuation.section.character-ref.begin.a4d
+//                 ^^ punctuation.section.character-ref.end.a4d
+
+$foo \\ // comment
+    [[ \\ // comment
+        $index + 1 \\ // comment
+    ]]
+//  ^^ meta.character-ref.a4d punctuation.section.character-ref.end.a4d
+
+$foo \\ // comment
+    { \\ // comment
+        7 \\ // comment
+    } \\ // comment
+    [[ \\ // comment
+        $count \\
+        + \\
+        1 \\
+    ]]
+//  ^^ meta.character-ref.a4d punctuation.section.character-ref.end.a4d
+
+
+/***********************
+    table/field
+************************/
+
+$foo := ->[customers]
+//        ^^^^^^^^^^^ meta.table-reference.a4d
+//        ^ punctuation.section.brackets.table.begin.a4d
+//         ^^^^^^^^^ entity.name.table.a4d
+//                  ^ punctuation.section.brackets.table.end.a4d
+
+// Unicode table names are valid
+$foo := ->[ΦжՆהسݕåकঘᏈ丵]
+//         ^^^^^^^^^^^ meta.table-reference.a4d entity.name.table.a4d
+
+$foo := [customers]name
+//      ^^^^^^^^^^^^^^^ meta.field-reference.a4d
+//       ^^^^^^^^^ entity.name.table.a4d
+//                ^ punctuation.section.brackets.table.end.a4d
+//                 ^^^^ entity.name.field.a4d
+
+// A field can have a character ref
+$foo := [customers]name[[1]]
+//                     ^^^^^ meta.character-ref.a4d
+
+// Unicode field names are valid
+$foo := ->[foo]ΦжՆהسݕåकঘᏈ丵
+//             ^^^^^^^^^^^ meta.field-reference.a4d entity.name.field.a4d
+
+
+/***********************
+    constants
+************************/
+
+true
+// <- constant.language.a4d
+
+false
+// <- constant.language.a4d
+
+// Case doesn't matter
+True
+// <- constant.language.a4d
+
+// Active4D constants
+
+http status ok
+// <- support.constant.a4d
+
+a4d regex split no empty
+// <- support.constant.a4d
+
+// 4D constants
+
+Is date
+// <- support.constant.a4d
+
+tiff jbigb&w
+// <- support.constant.a4d
+
+// Character refs can be used after constants
+austrian schilling[[2]]
+//                ^^^^^ meta.character-ref.a4d
+
+// Make sure portions of an identifier are not matched
+    true foo
+//  ^^^^^^^^ entity.name.a4d
+
+
+/***********************
+    commands
+************************/
+
+    hide session field("foo")
+//  ^^^^^^^^^^^^^^^^^^ support.function.a4d
+
+// Some commands may return a collection, so they may take an index and/or character ref
+_form{"foo"}[[1]]
+_query{"foo"}[[1]]
+_request{"foo"}[[1]]
+call method{"foo"}[[1]]
+choose{"foo"}[[1]]
+configuration{"foo"}[[1]]
+copy collection{"foo"}[[1]]
+deep copy collection{"foo"}[[1]]
+execute{"foo"}[[1]]
+form variables{"foo"}[[1]]
+get collection{"foo"}[[1]]
+get item value{"foo"}[[1]]
+get local{"foo"}[[1]]
+get session{"foo"}[[1]]
+get session item{"foo"}[[1]]
+globals{"foo"}[[1]]
+load collection{"foo"}[[1]]
+local variables{"foo"}[[1]]
+merge collections{"foo"}[[1]]
+new collection{"foo"}[[1]]
+new global collection{"foo"}[[1]]
+new local collection{"foo"}[[1]]
+object to collection{"foo"}[[1]]
+parse json{"foo"}[[1]]
+query params{"foo"}[[1]]
+request cookies{"foo"}[[1]]
+request info{"foo"}[[1]]
+response cookies{"foo"}[[1]]
+response headers{"foo"}[[1]]
+session{"foo"}[[1]]
+//     ^^^^^^^ meta.index.a4d
+//            ^^^^^ meta.character-ref.a4d
+
+// Other commands may not take an index
+current path{"foo"}
+//          ^ invalid.illegal.stray-open-brace.a4d
+//                ^ invalid.illegal.stray-close-brace.a4d
+
+// Commands may return a string, so they may take a character ref
+current path[[7]]
+//          ^^^^^ meta.character-ref.a4d
+
+// Make sure portions of an identifier are not matched
+    session field
+//  ^^^^^^^^^^^^^ entity.name.a4d
+
+
+/***********************
+    std library methods
+************************/
+
+    a4d.debug.dump collection($c)
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^ support.function.std-library.method.a4d
+
+    a4d.utils.unlockAndLoad(->[users])
+//  ^^^^^^^^^^^^^^^^^^^^^^^ support.function.std-library.method.a4d
+
+// Make sure portions of an identifier are not matched
+    a4d.debug.dump collection count($c)
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ variable.function.library.method.a4d
+
+// Standard library methods may return a collection, so they may take an index and/or character ref
+    a4d.utils.blobToCollection{"foo"}[[1]]
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^ support.function.std-library.method.a4d
+//                            ^^^^^^^ meta.index.a4d
+//                                   ^^^^^ meta.character-ref.a4d
+
+// Standard library methods may return a string, so they may take a character ref
+    a4d.utils.getSMTPHost[[7]]
+//  ^^^^^^^^^^^^^^^^^^^^^ support.function.std-library.method.a4d
+//                       ^^^^^ meta.character-ref.a4d
+
+
+/***********************
+    library methods
+************************/
+
+    a.b
+//  ^^^ entity.name.library-method-or-constant.a4d
+
+    csa.utils.sendMail("homer@simpson.com")
+//  ^^^^^^^^^^^^^^^^^^ variable.function.library.method.a4d
+
+
+/***********************
+    methods
+************************/
+    method "foo"
+//  ^^^^^^^^^^^^ meta.method.a4d
+//  ^^^^^^ storage.type.function.a4d
+//         ^ meta.method.name.a4d punctuation.definition.method-name.begin.a4d
+//         ^^^^^ meta.method.name.a4d
+//          ^^^ entity.name.function.a4d
+//             ^ punctuation.definition.method-name.end.a4d
+        doSomething
+    end method
+//  ^^^^^^^^^^ meta.method.a4d storage.type.function.end.a4d
+
+// Method names may contain spaces
+method "foo    bar"
+//      ^^^^^^^^^^ entity.name.function.a4d
+end method
+
+// Method names that begin with '_' are hidden
+method "_foo"
+//      ^^^^ entity.name.function.hidden.a4d
+end method
+
+// No space is necessary between 'method' and the name
+method"foo"
+//     ^^^ entity.name.function.a4d
+end method
+
+// Tokens may be separated by line continuation
+method \\
+  "foo"
+// ^^^ entity.name.function.a4d
+end method
+
+// Unicode identifiers are valid
+method "ꭷႣઈש"
+//      ^^^^ entity.name.function.a4d
+end method
+
+// Method names must be a double-quoted literal string
+    method foo
+//  ^^^^^^^^^^ entity.name.a4d
+    end method
+//  ^^^ invalid.illegal.unmatched-flow-control-end.a4d
+
+method 'foo'
+//     ^^^^^ meta.method.a4d meta.method.name.a4d invalid.illegal.name.a4d
+end method
+
+// Method name must not be empty
+method ""
+//     ^^ invalid.illegal.name.a4d
+end method
+
+// Method name must be a closed string
+method "foo
+//     ^^^^ invalid.illegal.name.a4d
+end method
+
+// Method name must be a valid non-library identifier
+method "foo.bar"
+//      ^^^^^^^ invalid.illegal.name.a4d
+end method
+
+// There must be a name
+method
+//    ^ invalid.illegal.expected-method-name.a4d
+end method
+
+// Methods may have parameters
+method "foo" ( $foo ; $bar )
+//           ^^^^^^^^^^^^^^^ meta.method.parameters.a4d
+//           ^ punctuation.section.parameters.begin.a4d
+//             ^^^^ variable.parameter.function.a4d
+//                  ^ punctuation.separator.parameter-declaration.a4d
+//                    ^^^^ variable.parameter.function.a4d
+//                         ^ punctuation.section.parameters.end.a4d
+//                          ^ meta.method.a4d meta.method.body.a4d
+end method
+
+// Method parameters may be prefixed with &
+method "foo" (&$foo; $bar; & $baz)
+//            ^ meta.method.parameters.a4d storage.modifier.reference.a4d
+//             ^^^^ meta.method.parameters.a4d variable.parameter.function.a4d
+//                         ^ meta.method.parameters.a4d storage.modifier.reference.a4d
+end method
+
+// Parameters lists may be separated by line continuation
+method "foo" ( \\ // comment
+&$foo \\
+; \\ // comment
+$bar \\  // more comments
+)
+    write("hello")
+end method
+
+// Method parameters may have default values
+method "foo"($foo = (7 + 13); &$bar = true)
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.method.parameters.a4d
+//                ^ punctuation.separator.default-parameter.a4d
+//                   ^ constant.numeric.a4d
+//                       ^^ constant.numeric.a4d
+//                                  ^ punctuation.separator.default-parameter.a4d
+//                                    ^^^^ constant.language.a4d
+end method
+
+// Only ; may be between parameters
+method "foo"($foo, $bar)
+//               ^ meta.method.parameters.a4d invalid.illegal.unexpected-token.a4d
+end method
+
+// Methods may not have an empty parameter list
+method "foo"( )
+//          ^^^ meta.method.parameters.a4d invalid.illegal.expected-parameter.a4d
+end method
+
+// Parameter list must be closed
+method "foo"($foo
+//               ^ meta.method.parameters.a4d invalid.illegal.unexpected-end-of-statement.a4d
+    write("hello")
+// <- meta.method.a4d meta.method.body.a4d
+end method
+
+// No tokens other than line continuation or comments may appear after end of declaration
+method "foo"($foo) \\ // comment
+    // nothing
+end method
+
+method "foo" \\ // comment
+    // nothing
+end method
+
+method "foo" bar
+//           ^^^ invalid.illegal.unexpected-token.a4d
+end method
+
+method "foo"($foo) bar
+//                 ^^^ invalid.illegal.unexpected-token.a4d
+end method
+
+
+/***********************
+    if
+************************/
+
+    if ($foo = ($count - 1))
+//  ^^ keyword.control.conditional.a4d
+//     ^^^^^^^^^^^^^^^^^^^^^ meta.group.a4d
+//     ^ punctuation.section.group.begin.a4d
+//             ^^^^^^^^^^^^ meta.group.a4d meta.group.a4d
+//             ^ punctuation.section.group.begin.a4d
+//                        ^ punctuation.section.group.end.a4d
+//                         ^ punctuation.section.group.end.a4d
+//                          ^ meta.block.if.a4d
+
+    else // comments are ok
+//  ^^^^ keyword.control.conditional.a4d
+    if ($bar > 0)
+//  ^^ meta.block.else.a4d keyword.control.conditional.a4d
+        write("woo-hoo!")
+// <- meta.block.else.a4d meta.block.if.a4d
+    else
+        write("doh!")
+// <- meta.block.else.a4d meta.block.else.a4d
+    end if
+// ^ meta.block.else meta.block.else
+//  ^^^^^^ keyword.control.conditional.a4d
+
+// There can only be one else in an if block
+    else
+//  ^^^^ invalid.illegal.misplaced-else.a4d
+
+    doSomething()
+    end if
+//  ^^^^^^ keyword.control.conditional.a4d - meta.block.if
+
+// Multiple or'ed or and'ed conditions do not have to be wrapped by parens
+if ($foo > 0) | ($bar > 0)
+// ^^^^^^^^^^ meta.group.a4d
+//            ^ keyword.operator.logical.a4d
+//              ^^^^^^^^^^ meta.group.a4d
+
+    write("woo-hoo!")
+// <- meta.block.if.a4d
+end if
+// <- keyword.control.conditional.a4d
+
+if ($foo > 0) & ($bar > 0)
+// ^^^^^^^^^^ meta.group.a4d
+//            ^ keyword.operator.logical.a4d
+//              ^^^^^^^^^^ meta.group.a4d
+
+    write("woo-hoo!")
+// <- meta.block.if.a4d
+end if
+// <- keyword.control.conditional.a4d
+
+// Catch an invalid operator between conditions
+if ($foo > 0) # ($bar > 0)
+//            ^ invalid.illegal.unexpected-token.a4d
+end if
+// <- invalid.illegal.unmatched-flow-control-end.a4d
+
+// if blocks can be interrupted by html
+if ($foo = $bar) | ($foo # $baz) %>
+//                               ^^ text.html.a4d punctuation.section.embedded.end.inside-block.a4d
+<p class="text">foobar</p>
+// <- text.html.a4d
+<%
+// <- text.html.a4d punctuation.section.embedded.begin.inside-block.a4d
+end if
+// <- text.html.a4d source.a4d.embedded.html keyword.control.conditional.a4d
+
+// No tokens can come after control flow keywords
+if ($foo) !
+//        ^ invalid.illegal.unexpected-token.a4d
+
+if ($foo)
+else !
+//   ^ invalid.illegal.unexpected-token.a4d
+
+// Comments can come after control flow keywords
+if ($foo) // comment
+else // comment
+end if // comment
+
+if ($foo)
+end if !
+//     ^ invalid.illegal.unexpected-token.a4d
+
+// Spaces can be part of process variable names, so the following are not keywords
+if foo
+// <- entity.name.a4d
+else foo
+// <- entity.name.a4d
+end if foo
+// <- entity.name.a4d
+
+
+/***********************
+    case of
+************************/
+
+    case of
+//  ^^^^^^^ keyword.control.conditional.a4d
+
+// Statements after 'case of' and before the first ':' or 'else' are ignored
+foo bar
+13 / 0
+
+    : ($foo > 0) // comments are fine
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.block.case-of.a4d
+//  ^ keyword.control.conditional.a4d
+        write("woo-hoo!")
+// <- meta.block.case-of.a4d meta.block.case.a4d
+
+    // Multiple conditions do not have to be wrapped in parens
+    :($foo = 0) | ($bar > 7)
+//              ^ keyword.operator.logical.a4d
+        write("doh!")
+
+        // Make sure := is not mistaken for ':' (a case) + '='
+        $bar := 7
+//           ^^ keyword.operator.assignment.a4d
+
+        // Make sure ::= is not mistaken for ':' (a case) + ':='
+        $bar ::= 7
+//           ^^^ keyword.operator.assignment.a4d
+
+    // Cases can use line continuation
+    : \\ // comments ok
+    ( \\
+        $bar = 1 \\
+    )
+        write("cool")
+//      ^^^^^ support.function.a4d
+
+    else
+//  ^^^^ meta.block.case-of.a4d keyword.control.conditional.a4d
+        write("bummer")
+// <- meta.block.case-of.a4d meta.block.case-else.a4d
+    end case
+//  ^^^^^^^^ keyword.control.conditional.a4d - meta.block.case-else
+
+
+/***********************
+    for
+************************/
+
+    for ($i; 1; size of array($names))
+//  ^^^ keyword.control.loop.a4d
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.for-init.a4d
+//      ^ punctuation.section.for-init.begin.a4d
+//       ^^ variable.other.local.a4d
+//         ^ punctuation.separator.for-init.a4d
+//           ^ constant.numeric.a4d
+//            ^ punctuation.separator.for-init.a4d
+//                                   ^ punctuation.section.for-init.end.a4d
+//                                    ^ meta.block.for.a4d
+
+    writebr($name)
+
+    for ($j; 1; $i)
+        writebr($j)
+// <- meta.block.for.a4d meta.block.for.a4d
+    end for
+
+    if ($i % 2 = 0)
+        continue
+//      ^^^^^^^^ meta.block.for.a4d meta.block.if.a4d keyword.control.loop.a4d
+    end if
+
+end for
+
+// Line continuation can be used with for init
+
+for \\ // comment
+( \\ // comment
+<>i \\
+; \\
+$count \\ // comment
+; \\
+records in selection([users]) \\
+)
+    write([users]name)
+end for
+
+// Breaking up for init without line continuation is an error
+
+for ($i; 1;
+//         ^ invalid.illegal.unexpected-end-of-statement.a4d
+10)
+// <- meta.block.for.a4d
+//^ invalid.illegal.stray-close-parens.a4d
+end for
+
+
+/***********************
+    for each
+************************/
+
+    for each ([users])
+//  ^^^ keyword.control.loop.a4d
+//           ^^^^^^^^ meta.for-each-init.a4d
+//           ^ punctuation.section.for-each-init.begin.a4d
+//            ^^^^^^^ meta.table-reference.a4d
+//                   ^ punctuation.section.for-each-init.end.a4d
+//                    ^ meta.block.for-each.a4d
+
+    writebr($name)
+
+    for ($j; 1; $i)
+        writebr($j)
+// <- meta.block.for-each.a4d meta.block.for.a4d
+    end for
+
+    if ($i % 2 = 0)
+        continue
+//      ^^^^^^^^ meta.block.for-each.a4d meta.block.if.a4d keyword.control.loop.a4d
+    end if
+
+    end for each
+//  ^^^^^^^^^^^^ keyword.control.loop.a4d - meta.block
+
+for each ([users]; $recnum)
+//       ^^^^^^^^^^^^^^^^^^ meta.for-each-init.a4d
+//               ^ punctuation.separator.for-each-init.a4d
+//                 ^^^^^^^ variable.other.local.a4d
+//                        ^ punctuation.section.for-each-init.end.a4d
+//                         ^ meta.block.for-each.a4d
+end for each
+
+for each ($names; $name)
+//       ^^^^^^^^^^^^^^^ meta.for-each-init.a4d
+//              ^ punctuation.separator.for-each-init.a4d
+//                ^^^^^ variable.other.local.a4d
+//                     ^ punctuation.section.for-each-init.end.a4d
+//                      ^ meta.block.for-each.a4d
+end for each
+
+// Any type of variable can be used for receiving variables
+for each ($names; name; <>index)
+//       ^^^^^^^^^^^^^^^^^^^^^^^ meta.for-each-init.a4d
+//              ^ punctuation.separator.for-each-init.a4d
+//                ^^^^ entity.name.a4d
+//                    ^ punctuation.separator.for-each-init.a4d
+//                      ^^^^^^^ variable.other.interprocess.a4d
+//                             ^ punctuation.section.for-each-init.end.a4d
+//                              ^ meta.block.for-each.a4d
+end for each
+
+// Receiving variables may have indexes
+for each ($names; $c{"names"}{"i"}; $c{"i"})
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.for-each-init.a4d
+//              ^ punctuation.separator.for-each-init.a4d
+//                ^^ variable.other.local.a4d
+//                  ^^^^^^^^^^^^^^ meta.index.a4d
+//                                    ^^^^^ meta.index.a4d
+//                                         ^ punctuation.section.for-each-init.end.a4d
+//                                          ^ meta.block.for-each.a4d
+end for each
+
+// Line continuation can be used with for each init
+
+for each \\ // comment
+( \\ // comment
+<>i \\
+; \\
+$count \\ // comment
+; \\
+$foo \\
+)
+    write([users]name)
+end for each
+
+// Breaking up for each init without line continuation is an error
+
+for each ($i; $foo;
+//                 ^ invalid.illegal.unexpected-end-of-statement.a4d
+10)
+// <- meta.block.for-each.a4d
+//^ invalid.illegal.stray-close-parens.a4d
+end for each
+
+
+/***********************
+    while
+************************/
+
+    while ($foo > 0)
+//  ^^^^^ keyword.control.loop.a4d
+//        ^^^^^^^^^^ meta.group.a4d
+//        ^ punctuation.section.group.begin.a4d
+//                 ^ punctuation.section.group.end.a4d
+//                  ^ meta.block.while.a4d
+    doSomething
+
+    if ($foo % 2 = 0)
+        for ($i; 1; 10)
+            doSomething
+// <- meta.block.while.a4d meta.block.if.a4d meta.block.for.a4d
+        end for
+    end if
+
+    end while
+//  ^^^^^^^^^ keyword.control.loop.a4d - meta.block.while
+
+// Multiple conditions do not have to be wrapped in parens
+
+while ($foo > 0) | ($bar > 0)
+//               ^ keyword.operator.logical.a4d
+    write($foo + $bar)
+// <- meta.block.while.a4d
+end while
+
+// Line continuation can be used with while condition
+
+while \\
+( \\
+$foo > 0 \\
+)
+    doSomething
+end while
+
+
+/***********************
+    repeat
+************************/
+
+    repeat
+//  ^^^^^^ keyword.control.loop.a4d
+//        ^ meta.block.repeat.a4d
+    doSomething
+
+    if ($foo % 2 = 0)
+        for ($i; 1; 10)
+            doSomething
+// <- meta.block.repeat.a4d meta.block.if.a4d meta.block.for.a4d
+        end for
+    end if
+
+    until ($foo > 0)
+//  ^^^^^ keyword.control.loop.a4d - meta.block
+//        ^^^^^^^^^^ meta.group.a4d
+//        ^ punctuation.section.group.begin.a4d
+//                 ^ punctuation.section.group.end.a4d
+
+// Multiple conditions do not have to be wrapped in parens
+
+    repeat
+        write($foo++)
+    until ($foo > 10) | ($bar = 0)
+//  ^^^^^ keyword.control.loop.a4d
+//        ^^^^^^^^^^ meta.group.a4d
+//        ^ punctuation.section.group.begin.a4d
+//                  ^ punctuation.section.group.end.a4d
+//                    ^ keyword.operator.logical.a4d
+//                      ^ punctuation.section.group.begin.a4d
+//                               ^ punctuation.section.group.end.a4d
+
+
+// Line continuation can be used with while condition
+
+repeat
+    doSomething
+until \\
+( \\
+$foo > 0 \\
+)
+
+
+/***********************
+    other keywords
+************************/
+
+exit
+// <- keyword.control.a4d
+
+
+    define(kTest; "foo" + "bar") // comment
+//  ^^^^^^ keyword.other.a4d
+//        ^ punctuation.section.group.begin.a4d
+//         ^^^^^ entity.name.constant.a4d
+//                ^^^^^ string.quoted.double.a4d
+//                      ^ keyword.operator.arithmetic.a4d
+//                        ^^^^^ string.quoted.double.a4d
+//                             ^ punctuation.section.group.end.a4d
+
+    // defined constant may contains spaces
+    define(kFoo bar; "foo" + "bar")
+//         ^^^^^^^^ entity.name.constant.a4d
+
+    // define may use line continuation
+    define \\ // comment
+    ( \\
+        kTest \\ // comment
+        ; \\
+        "foo" + "bar" \\ // comment
+    )
+//  ^ punctuation.section.group.end.a4d
+
+    // define must use a plain identifier
+    define($kTest; "foo")
+//         ^^^^^^^ invalid.illegal.unexpected-token.a4d
+
+global($foo; $bar)
+// <- keyword.other.a4d
+
+return ("foo")
+// <- keyword.control.a4d
+
+import("foo.bar")
+// <- keyword.control.import.a4d
+
+include("foo.a4d")
+// <- keyword.control.import.a4d
+
+include into("foo.a4d"; $output)
+// <- keyword.control.import.a4d
+
+
+/***********************************
+    method calls
+************************************/
+
+    foo("bar")
+//  ^^^^^^^^^^ meta.function-call.a4d
+//  ^^^ variable.function.a4d
+//     ^^^^^^^ meta.group.a4d
+//     ^ punctuation.section.group.begin.a4d
+//           ^ punctuation.section.group.end.a4d
+
+    foo("bar"; ($count + 1) * 2; $baz{"blah"}[[($i + 2)]])
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.a4d
+//  ^^^ variable.function.a4d
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.group.a4d
+//     ^ punctuation.section.group.begin.a4d
+//           ^ punctuation.separator.argument.a4d
+//             ^^^^^^^^^^^^ meta.group.a4d meta.group.a4d
+//                        ^ punctuation.section.group.end.a4d
+//                                             ^^^^^^^^ meta.character-ref.a4d meta.group.a4d
+//                                                       ^ punctuation.section.group.end.a4d
+
+    write(7.13; "000.###")
+//  ^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.a4d
+//  ^^^^^ support.function.a4d
+//       ^^^^^^^^^^^^^^^^^ meta.group.a4d
+
+    a4d.debug.dump collection ($c; "name"; true)
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.a4d
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^ support.function.std-library.method.a4d
+//                            ^^^^^^^^^^^^^^^^^^ meta.group.a4d
+//                               ^ punctuation.separator.argument.a4d
+//                                       ^ punctuation.separator.argument.a4d
+
+    foo.debug.dump collection($c; "name"; true)
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.a4d
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^ variable.function.library.method.a4d
+//                           ^^^^^^^^^^^^^^^^^^ meta.group.a4d
+//                              ^ punctuation.separator.argument.a4d
+//                                      ^ punctuation.separator.argument.a4d
+
+// Line continuation can be used with args
+write( \\ // comment
+    7 \\
+    ; \\ // comment
+)
+// <- meta.function-call.a4d meta.group.a4d punctuation.section.group.end.a4d
+
+// Unexpected end of statement is an error
+write (
+//     ^ invalid.illegal.expected-close-parens.a4d
+
+write("foo";
+//          ^ invalid.illegal.expected-close-parens.a4d
+
+
+/***********************************
+    strays/misplaced/unmatched
+************************************/
+
+$foo{$bar{7}}}}
+//           ^^invalid.illegal.stray-close-brace.a4d
+
+$foo{$bar{7}}[[13]]]]
+//                 ^^ invalid.illegal.stray-close-bracket.a4d
+
+    end case
+//  ^^^^^^^^ invalid.illegal.unmatched-flow-control-end.a4d
+
+    end if
+//  ^^^^^^ invalid.illegal.unmatched-flow-control-end.a4d
+
+    end for
+//  ^^^^^^^ invalid.illegal.unmatched-flow-control-end.a4d
+
+    end for each
+//  ^^^^^^^^^^^^ invalid.illegal.unmatched-flow-control-end.a4d
+
+    end method
+//  ^^^^^^^^^^ invalid.illegal.unmatched-flow-control-end.a4d
+
+    end while
+//  ^^^^^^^^^ invalid.illegal.unmatched-flow-control-end.a4d
+
+    until
+//  ^^^^^ invalid.illegal.unmatched-flow-control-end.a4d
+
+    library "foo"
+//  ^^^^^^^ invalid.illegal.misplaced-library-keyword.a4d
+    end library
+//  ^^^^^^^^^^^ invalid.illegal.misplaced-library-keyword.a4d
+
+// Commas in an expression are always an error
+callme("foo", "bar")
+//          ^ invalid.illegal.unexpected-token.a4d
+
+// Statement keywords may not be used within an expression
+$foo := 7 if
+//        ^^ invalid.illegal.unexpected-token.a4d
+
+// Semicolons may only appear as parameter separators
+;
+// <- invalid.illegal.unexpected-token.a4d
+
+if ($foo = 1; $bar < 1)
+//          ^ invalid.illegal.unexpected-token.a4d
+end if
+
+$foo := $bar{{"baz"}
+//           ^ invalid.illegal.stray-open-brace.a4d
+
+$foo{"bar"; "baz"])}
+//        ^ invalid.illegal.unexpected-token.a4d
+//               ^ invalid.illegal.stray-close-bracket.a4d
+//                ^ invalid.illegal.stray-close-parens.a4d
+
+$foo[[7; 13]]
+//     ^ invalid.illegal.unexpected-token.a4d
+
+
+/***********************************
+    embedding (tests from ASP)
+************************************/
+
+    %>
+//  ^^ punctuation.section.embedded.end.a4d
+//    ^ - source.a4d.embedded.html
+
+    This file was last modified on: <%write(modified)
+//  ^ - source.a4d.embedded.html
+//                                  ^^ punctuation.section.embedded.begin.a4d
+//                                    ^ source.a4d.embedded.html
+//                                    ^^^^^ support.function.a4d
+    %>
+
+    <p>foobar</p>
+//  ^^^ text.html.a4d meta.tag.block.any.html - source.a4d.embedded.html
+
+    <% %>
+//  ^^ text.html.a4d punctuation.section.embedded.begin.a4d
+//     ^^ text.html.a4d punctuation.section.embedded.end.a4d
+
+    <% // comment %>
+//  ^^ text.html.a4d punctuation.section.embedded.begin.a4d
+//     ^^^^^^^^^^ text.html.a4d source.a4d.embedded.html comment.line.a4d
+//                ^^ text.html.a4d punctuation.section.embedded.end.a4d
+
+    Embedded expression must not be empty
+    <%= %>
+//  ^^^ punctuation.section.embedded.begin.a4d - source.a4d
+//      ^^ invalid.illegal.unexpected-token.a4d
+
+    <%=//test %>
+//  ^^^ punctuation.section.embedded.begin.a4d - source.a4d
+//     ^^^^^^ comment.line.a4d
+//            ^^ punctuation.section.embedded.end.a4d - comment
+//            ^^^ - source.a4d.embedded.html
+
+// Can't test the code below, make sure it is hilited correctly
+<%= "hello" + \\ // comment
+"there" \\ // comment
+%>
+// <- text.html.a4d punctuation.section.embedded.end.a4d - source.a4d
+
+    <% = current date // comment %>
+//  ^^^^ punctuation.section.embedded.begin.a4d - source.a4d
+//       ^^^^^^^^^^^^^^^^^^^^^^^^ source.a4d.embedded.html
+//       ^^^^^^^^^^^^ support.function.a4d
+//                    ^^^^^^^^^^^ comment.line
+//                               ^^ punctuation.section.embedded.end.a4d - source.a4d
+
+    <% = current date; system date long // comment %>
+//  ^^^^ punctuation.section.embedded.begin.a4d - source.a4d
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.a4d.embedded.html
+//       ^^^^^^^^^^^^ support.function.a4d
+//                   ^ punctuation.separator.embedded-expression.a4d
+//                     ^^^^^^^^^^^^^^^^ support.constant.a4d
+//                                      ^^^^^^^^^^^ comment.line
+//                                                 ^^ punctuation.section.embedded.end.a4d - source.a4d
+
+    <p class="<% if (true) %>test<% = end if %>"></p>
+//  ^^^^^^^^^^^^^^^^^^^^^^^ meta.tag.block.any.html
+//                                   ^^^^^^^^^^^^^^^^ meta.tag.block.any.html
+//     ^^^^^ meta.attribute-with-value.class.html entity.other.attribute-name.class.html
+//           ^^^ meta.attribute-with-value.class.html string.quoted.double.html
+//                                   ^^^^^^^^^^^ meta.attribute-with-value.class.html string.quoted.double.html
+//                                              ^ - string
+//            ^^^^^^^^^^^^^ meta.class-name.html
+//                                   ^^^^^^^^^^ meta.class-name.html
+//            ^^ punctuation.section.embedded.begin.a4d
+//               ^^^^^^^^^ source.a4d.embedded.html
+//               ^^ keyword.control.conditional.a4d
+//                         ^^ punctuation.section.embedded.end.inside-block.a4d
+//                               ^^ punctuation.section.embedded.begin.inside-block.a4d
+//                                    ^^^^^^ keyword.control.conditional.a4d
+//                                           ^^ punctuation.section.embedded.end.a4d - meta.block.if.a4d
+//                                              ^ punctuation.definition.tag.end.html
+
+    <p <%= "class=\"test\"" %> id="test1"></p>
+//  ^^^ meta.tag.block.any.html
+//                            ^^^^^^^^^^^^^^^^ meta.tag.block.any.html
+//  ^ punctuation.definition.tag.begin.html
+//   ^ entity.name.tag.block.any.html
+//     ^^^ punctuation.section.embedded.begin.a4d
+//         ^^^^^^^^^^^^^^^^ string.quoted.double.a4d
+//                          ^^ punctuation.section.embedded.end.a4d
+//                             ^^ meta.attribute-with-value.id.html entity.other.attribute-name.id.html
+//                                 ^^^^^ meta.attribute-with-value.id.html string.quoted.double.html meta.toc-list.id.html
+//                                       ^ punctuation.definition.tag.end.html
+//                                            ^ - meta.tag.block.any.html
+
+<%
+if (true)
+    for each ([users])
+%>
+        <span <%= "class=\"test\"" %> id="test2"><%= [users]name %></span>
+//      ^^^^^^ meta.tag.inline.any.html
+//      ^ punctuation.definition.tag.begin.html
+//       ^^^^ entity.name.tag.inline.any.html
+//            ^^^ punctuation.section.embedded.begin.inside-block.a4d
+//                ^^^^^^^^^^^^^^^^ string.quoted.double.a4d
+//                                 ^^ punctuation.section.embedded.end.inside-block.a4d
+//                                   ^^^^^^^^^^^^ meta.tag.after-embedded-a4d.any.html
+//                                    ^^ meta.attribute-with-value.id.html entity.other.attribute-name.id.html
+//                                        ^^^^^ meta.attribute-with-value.id.html string.quoted.double.html meta.toc-list.id.html
+//                                              ^ punctuation.definition.tag.end.html
+//                                               ^^^ punctuation.section.embedded.begin.inside-block.a4d - source.a4d
+//                                                   ^^^^^^^^^^^ meta.block.if.a4d meta.block.for-each.a4d meta.field-reference.a4d
+//                                                               ^^ punctuation.section.embedded.end.inside-block.a4d
+//                                                                 ^^^^^^^ meta.tag.inline.any.html - meta.tag.after-embedded-asp.any.html
+//                                                                 ^^ punctuation.definition.tag.begin.html
+//                                                                   ^^^^ entity.name.tag.inline.any.html
+//                                                                       ^ punctuation.definition.tag.end.html
+<%
+    end for each
+//  ^^^^^^^^^^^^ keyword.control.loop.a4d
+    end if %>
+//  ^^^^^^ keyword.control.conditional.a4d
+
+
+    <span <% if (false) %> class="test" <% end if %> id="test3"></span>
+//  ^^^^^^^^^^^^^^^^^^^^ meta.tag.inline.any.html
+//                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.tag.inline.any.html
+//  ^ punctuation.definition.tag.begin.html
+//   ^^^^ entity.name.tag.inline.any.html
+//        ^^ punctuation.section.embedded.begin.a4d
+//           ^^ keyword.control.conditional.a4d
+//                      ^^ punctuation.section.embedded.end.inside-block.a4d
+//                         ^^^^^^^^^^^^ meta.attribute-with-value.class.html
+//                         ^^^^^ entity.other.attribute-name.class.html
+//                              ^ punctuation.separator.key-value.html
+//                               ^ string.quoted.double.html punctuation.definition.string.begin.html
+//                                ^^^^ string.quoted.double.html meta.class-name.html
+//                                    ^ string.quoted.double.html punctuation.definition.string.end.html
+//                                      ^^ punctuation.section.embedded.begin.inside-block.a4d
+//                                         ^^^^^^ keyword.control.conditional.a4d
+//                                                ^^ punctuation.section.embedded.end.a4d
+//                                                   ^^ meta.attribute-with-value.id.html entity.other.attribute-name.id.html
+//                                                       ^^^^^ meta.attribute-with-value.id.html string.quoted.double.html meta.toc-list.id.html
+//                                                             ^ punctuation.definition.tag.end.html
+
+    <span <% if (true) %>
+    class="test"
+// ^^^^^^^^^^^^^ meta.tag
+//  ^^^^^^^^^^^^ meta.attribute-with-value.class.html
+//  ^^^^^ entity.other.attribute-name.class.html
+//       ^ punctuation.separator.key-value.html
+//        ^ string.quoted.double.html punctuation.definition.string.begin.html
+//         ^^^^ string.quoted.double.html meta.class-name.html
+//             ^ string.quoted.double.html punctuation.definition.string.end.html
+    <% end if %>
+//  ^^ punctuation.section.embedded.begin.inside-block.a4d
+//     ^^^^^^ keyword.control.conditional.a4d
+//            ^^ punctuation.section.embedded.end.a4d
+    id="test4"></span>
+//  ^^^^^^^^^^^ meta.tag
+//  ^^ meta.attribute-with-value.id.html entity.other.attribute-name.id.html
+//      ^^^^^ meta.attribute-with-value.id.html string.quoted.double.html meta.toc-list.id.html
+//            ^ punctuation.definition.tag.end.html
+//             ^^^^^^^ meta.tag.inline.any.html - meta.tag.after-embedded-asp.any.html
+//             ^^ punctuation.definition.tag.begin.html
+//               ^^^^ entity.name.tag.inline.any.html
+//                   ^ punctuation.definition.tag.end.html
+
+    <% if (true) %>
+//  ^^ punctuation.section.embedded.begin.a4d
+//               ^^ punctuation.section.embedded.end.inside-block.a4d
+    <span class="<%= "test" %>" id="test5"></span>
+//  ^^^^^^^^^^^^^ meta.tag.inline.any.html
+//              ^ string.quoted.double.html punctuation.definition.string.begin.html
+//               ^^^ punctuation.section.embedded.begin.inside-block.a4d
+//                          ^^ punctuation.section.embedded.end.inside-block.a4d
+//                            ^^^^^^^^^^^^^ meta.tag
+//                            ^ string.quoted.double.html punctuation.definition.string.end.html
+//                              ^^ meta.attribute-with-value.id.html entity.other.attribute-name.id.html
+//                                  ^^^^^ meta.attribute-with-value.id.html string.quoted.double.html meta.toc-list.id.html
+//                                        ^ punctuation.definition.tag.end.html
+//                                         ^^^^^^^ meta.tag.inline.any.html - meta.tag.after-embedded-asp.any.html
+//                                         ^^ punctuation.definition.tag.begin.html
+//                                           ^^^^ entity.name.tag.inline.any.html
+//                                               ^ punctuation.definition.tag.end.html
+    <% End If %>
+//  ^^ punctuation.section.embedded.begin.inside-block.a4d
+//     ^^^^^^ keyword.control.conditional.a4d
+//            ^^ punctuation.section.embedded.end.a4d
+
+    <%= $hi = 2 // will output a boolean expression - True or False %>
+//  ^^^ punctuation.section.embedded.begin.a4d
+//     ^^^^^^^ source.a4d.embedded.html
+//      ^^ variable.other.local.a4d
+//          ^ keyword.operator.a4d
+//            ^ constant.numeric.a4d
+//              ^^ comment
+
+// <- - comment - source.a4d.embedded.html
+
+</html>
