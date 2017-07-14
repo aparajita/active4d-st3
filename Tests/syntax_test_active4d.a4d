@@ -157,6 +157,16 @@ write('$i: $names[[1]].')
 '\t_query{"foo"}'
 // ^^^^^^ support.function.built-in-collection.a4d
 
+'\'_query{"foo"}'
+// ^^^^^^ support.function.built-in-collection.a4d
+
+'\"_query{"foo"}'
+// ^^^^^^ support.function.built-in-collection.a4d
+
+// \\ is a valid escape, but is not a left boundary for interpolated collections
+'\\_query{"foo"}'
+// ^^^^^^ string.interpolated.a4d - support.function.built-in-collection.a4d
+
 // Make sure collection names directly following other collection refs are recognized
 '`$foo + 7`_query{"foo"}globals{"bar"}{"baz"}_form{"yo"}[[13]]_request{"name"}'
 //         ^^^^^^ support.function.built-in-collection.a4d
@@ -190,9 +200,20 @@ write('[contacts]name[[7]]!')
 //                   ^^^^^ meta.character-ref.a4d
 
 // Expressions
+
 write('The date is `string(current date; system date long)`.')
 //                 ^ punctuation.section.interpolated-expression.begin.a4d
 //                                                        ^ punctuation.section.interpolated-expression.end.a4d
+
+// Empty expression is an error
+'empty: ` `'
+//      ^^^ invalid.illegal.empty-interpolated-expression.a4d
+
+// \ before the trailing ` prevents expression from being evaluated/replaced as a whole
+'prevent: `$foo + 7\`'
+//        ^ string.interpolated.a4d
+//         ^^^^ variable.other.local.a4d
+//              ^^^^^ string.interpolated.a4d - keyword.operator
 
 write('Count: `$count + 1`.')
 //             ^^^^^^ variable.other.local.a4d

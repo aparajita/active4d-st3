@@ -1093,8 +1093,8 @@ contexts:
           set:
             - meta_scope: string.interpolated.a4d
 
-            - include: interpolations
             - include: escaped-chars
+            - include: interpolations
 
             - match: "'"
               scope: punctuation.definition.string.end.a4d
@@ -1132,8 +1132,8 @@ contexts:
           set:
             - meta_scope: string.heredoc.interpolated.a4d
 
-            - include: interpolations
             - include: escaped-chars
+            - include: interpolations
 
             - match: "'''"
               scope: punctuation.definition.string.end.a4d
@@ -1245,13 +1245,18 @@ contexts:
       pop: true
 
   interpolated-expression:
-    - match: '(?<!\\)`\s*`'
+    - match: '`\s*`'
       scope: invalid.illegal.empty-interpolated-expression.a4d
 
-    - match: '(?<!\\)`(?=[^`]++`)'
+    # Ignore it if the trailing ` has \ before it. Eat the leading `
+    # so the rest of the text will be interpolated.
+    - match: '`(?=.*?\\`)'
+      scope: ''
+
+    - match: '`(?=.+?`)'
       scope: punctuation.section.interpolated-expression.begin.a4d
       push:
-        - match: '(?<!\\)`'
+        - match: '`'
           scope: punctuation.section.interpolated-expression.end.a4d
           set:
             - match: '(?={{interpolated_collection}})'
@@ -1277,8 +1282,23 @@ contexts:
       pop: true
 
   escaped-chars:
-    - match: \\[nrt"\'\\]
+    # These escapes act as left boundaries for interpolated collections
+    - match: \\[nrt"\']
       scope: constant.character.escape.a4d
+      push:
+        - match: '(?={{interpolated_collection}})'
+          set: inside-interpolated-collection
+
+        - match: ''
+          pop: true
+
+    # This is a valid escape, but not a left boundary for interpolated collections
+    - match: \\\\
+      scope: constant.character.escape.a4d
+
+    # Eat any other escape character so it can't be a left boundary for interpolated collections
+    - match: \\.
+      scope: ''
 
   #
   # Other expressions
