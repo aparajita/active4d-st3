@@ -365,8 +365,13 @@ callme( %>
 !03-30-1961!
 // <- constant.other.date
 
+// Separators can be mixed
+
 !03/30 61!
-// <- invalid.illegal.date
+// <- constant.other.date
+
+!03 30.61!
+// <- constant.other.date
 
 !03/300/61!
 // <- invalid.illegal.date
@@ -383,6 +388,11 @@ callme( %>
 // <- constant.other.time
 
 ?01 02 03?
+// <- constant.other.time
+
+// Separators can be mixed
+
+?01 02:03?
 // <- constant.other.time
 
 ?01:123:03?

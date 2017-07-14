@@ -774,7 +774,7 @@ contexts:
         - include: expression
 
   expression-interpolated:
-    - match: '(?<!\\)(?=`)'
+    - match: '(?=`)'
       pop: true
 
     - include: expression
@@ -1304,7 +1304,7 @@ contexts:
   # Other expressions
   #
   date:
-    - match: \!\d{1,2}([/. \-])\d{1,2}\1\d{1,4}\!
+    - match: \!\d{1,2}[/. \-]\d{1,2}[/. \-]\d{1,4}\!
       scope: constant.other.date.a4d
 
     # Flag anything else between pairs of !! as invalid
@@ -1312,7 +1312,7 @@ contexts:
       scope: invalid.illegal.date.a4d
 
   time:
-    - match: '\?\d{1,2}([: ])\d{1,2}\1\d{1,2}\?'
+    - match: '\?\d{1,2}[: ]\d{1,2}[: ]\d{1,2}\?'
       scope: constant.other.time.a4d
 
     # Flag anything else between pairs of ?? as invalid, be sure to allow for ?+/?- bitwise operators
