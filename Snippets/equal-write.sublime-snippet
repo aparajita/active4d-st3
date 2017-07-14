@@ -1,0 +1,5 @@
+<snippet>
+    <description>= ..</description>
+    <content><![CDATA[<%= $0 %>]]></content>
+    <scope>text.html.strict.active4d - source.a4d</scope>
+</snippet>

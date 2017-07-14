@@ -1,0 +1,6 @@
+<snippet>
+    <description>RowSet.newFromSelection ..</description>
+    <content><![CDATA[\$${1:query} := RowSet.newFromSelection(->[${2:table}]; ${3:\$map})]]></content>
+    <tabTrigger>rs</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

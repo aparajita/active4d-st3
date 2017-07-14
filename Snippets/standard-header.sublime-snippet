@@ -1,0 +1,22 @@
+<snippet>
+    <description>Standard Header</description>
+    <content><![CDATA[<% /*
+<fusedoc fuse="${TM_FILENAME:filename.a4d}" language="Active4D" specification="2.0">
+    <responsibilities>
+        $1
+    </responsibilities>
+    <io>
+        <in>
+            $0
+        </in>
+    </io>
+</fusedoc>
+
+\$Id\$
+*/
+
+
+%>]]></content>
+    <tabTrigger>sh</tabTrigger>
+    <scope>text.html.strict.active4d - source.a4d</scope>
+</snippet>

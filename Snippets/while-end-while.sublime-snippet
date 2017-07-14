@@ -1,0 +1,8 @@
+<snippet>
+    <description>while .. end while</description>
+    <content><![CDATA[while (${1:condition})
+    $0
+end while]]></content>
+    <tabTrigger>wh</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

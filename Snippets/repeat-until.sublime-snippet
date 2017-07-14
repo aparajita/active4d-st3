@@ -1,0 +1,8 @@
+<snippet>
+    <description>repeat .. until</description>
+    <content><![CDATA[repeat
+    $0
+until (${1:condition})]]></content>
+    <tabTrigger>rep</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

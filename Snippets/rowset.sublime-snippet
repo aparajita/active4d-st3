@@ -1,0 +1,8 @@
+<snippet>
+    <description>fusedoc: RowSet ..</description>
+    <content><![CDATA[<RowSet name="\$${1:query}">
+    $0
+</RowSet>]]></content>
+    <tabTrigger>rs</tabTrigger>
+    <scope>source.a4d text.xml</scope>
+</snippet>

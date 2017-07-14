@@ -1,0 +1,6 @@
+<snippet>
+    <description>fusedoc: number ..</description>
+    <content><![CDATA[<number name="${1:name}" $2/>]]></content>
+    <tabTrigger>num</tabTrigger>
+    <scope>source.a4d text.xml</scope>
+</snippet>

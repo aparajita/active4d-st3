@@ -1,0 +1,6 @@
+<snippet>
+    <description>fusebox.makeUrl ..</description>
+    <content><![CDATA[fusebox.makeUrl(\$XFA_$1${2:; query})]]></content>
+    <tabTrigger>fm</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

@@ -1,0 +1,6 @@
+<snippet>
+    <description>fusebox redirect ..</description>
+    <content><![CDATA[redirect(fusebox.makeUrl(\$XFA_$1))]]></content>
+    <tabTrigger>fr</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

@@ -1,0 +1,6 @@
+<snippet>
+    <description>$attributes ..</description>
+    <content><![CDATA[\$attributes{"${1:key}"}]]></content>
+    <tabTrigger>at</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

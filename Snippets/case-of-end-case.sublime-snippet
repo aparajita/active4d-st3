@@ -1,0 +1,9 @@
+<snippet>
+    <description>case of .. end case</description>
+    <content><![CDATA[case of
+    :(${1:condition})
+        $0
+end case]]></content>
+    <tabTrigger>case</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

@@ -1,0 +1,8 @@
+<snippet>
+    <description>for .. end for</description>
+    <content><![CDATA[for (${1:\$i}; ${2:1}; ${3:end})
+    $0
+end for]]></content>
+    <tabTrigger>for</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

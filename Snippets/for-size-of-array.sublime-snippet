@@ -1,0 +1,8 @@
+<snippet>
+    <description>for ( .. size of array(..)) .. end for</description>
+    <content><![CDATA[for (${1:\$i}; ${2:1}; size of array(${3:\$array}))
+    $0
+end for]]></content>
+    <tabTrigger>fora</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

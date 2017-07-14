@@ -1,0 +1,6 @@
+<snippet>
+    <description>find in array ..</description>
+    <content><![CDATA[find in array(${1:\$array}; ${2:value}${3:; start})]]></content>
+    <tabTrigger>fa</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

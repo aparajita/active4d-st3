@@ -1,0 +1,6 @@
+<snippet>
+    <description>records in selection ..</description>
+    <content><![CDATA[records in selection([${0:table}])]]></content>
+    <tabTrigger>ris</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

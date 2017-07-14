@@ -1,0 +1,8 @@
+<snippet>
+    <description>for each (table) .. end for each</description>
+    <content><![CDATA[for each ([${1:table}]${2:; \$index})
+    $0
+end for each]]></content>
+    <tabTrigger>fet</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

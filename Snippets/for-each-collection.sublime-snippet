@@ -1,0 +1,8 @@
+<snippet>
+    <description>for each (collection) .. end for each</description>
+    <content><![CDATA[for each (${1:\$collection}; ${2:\$key}${3:; \$value})
+    $0
+end for each]]></content>
+    <tabTrigger>fec</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

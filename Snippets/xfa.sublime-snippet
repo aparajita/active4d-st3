@@ -1,0 +1,6 @@
+<snippet>
+    <description>fusedoc: XFA</description>
+    <content><![CDATA[<string name="\$XFA_$1" $2/>]]></content>
+    <tabTrigger>xfa</tabTrigger>
+    <scope>source.a4d text.xml</scope>
+</snippet>

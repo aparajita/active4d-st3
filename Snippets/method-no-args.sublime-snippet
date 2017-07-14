@@ -1,0 +1,8 @@
+<snippet>
+    <description>method (..) .. end method</description>
+    <content><![CDATA[method "${1:name}"(${2:\$parameter})
+    $0
+end method]]></content>
+    <tabTrigger>mp</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

@@ -1,0 +1,6 @@
+<snippet>
+    <description>query selection..</description>
+    <content><![CDATA[query selection([${1:table}]; [$1]${2:field})]]></content>
+    <tabTrigger>qs</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

@@ -1,0 +1,8 @@
+<snippet>
+    <description>for each (string) .. end for each</description>
+    <content><![CDATA[for each (${1:\$string}; ${2:\$char}${3:; \$index})
+    $0
+end for each]]></content>
+    <tabTrigger>fes</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

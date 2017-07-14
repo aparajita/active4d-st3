@@ -1,0 +1,10 @@
+<snippet>
+    <description>if .. else end if</description>
+    <content><![CDATA[if (${1:condition})
+    $0
+else
+
+end if]]></content>
+    <tabTrigger>ife</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

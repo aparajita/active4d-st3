@@ -1,0 +1,6 @@
+<snippet>
+    <description>fusedoc: boolean ..</description>
+    <content><![CDATA[<boolean name="${1:name}" $2/>]]></content>
+    <tabTrigger>bool</tabTrigger>
+    <scope>source.a4d text.xml</scope>
+</snippet>

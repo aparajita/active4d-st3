@@ -1,0 +1,10 @@
+<snippet>
+    <description>while (not(end selection([..]))) end while</description>
+    <content><![CDATA[while (not(end selection([${1:table}])))
+    $0
+
+    next record([$1])
+end while]]></content>
+    <tabTrigger>whe</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

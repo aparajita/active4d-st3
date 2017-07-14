@@ -1,0 +1,8 @@
+<snippet>
+    <description>for each (array) .. end for each</description>
+    <content><![CDATA[for each (${1:\$array}; ${2:\$value}${3:; \$index})
+    $0
+end for each]]></content>
+    <tabTrigger>fea</tabTrigger>
+    <scope>source.a4d - text.xml</scope>
+</snippet>

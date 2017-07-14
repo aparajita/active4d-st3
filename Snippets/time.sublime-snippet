@@ -1,0 +1,6 @@
+<snippet>
+    <description>fusedoc: time ..</description>
+    <content><![CDATA[<time name="${1:name}" $2/>]]></content>
+    <tabTrigger>time</tabTrigger>
+    <scope>source.a4d text.xml</scope>
+</snippet>
