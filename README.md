@@ -10,14 +10,14 @@ Active4D-ST3 is a Sublime Text 3 package which provides syntax highlighting, sni
 ## Syntax Highlighting
 Full syntax highlighting is provided for the following file types:
 
-* **Embedded scripts (.a4d, .a4p)** – Context-aware syntax highlighting and error checking is provided. Anything not within `<% %>` script tags is highlighted as if it were an HTML file. `<script>` and `<style>` blocks within the file are highlighted using Javascript and CSS modes respectively. Symbol matching is provided for methods defined inline.
+* **Embedded scripts (.a4d, .a4p)** – Any Active4D code within `<% %>` tags receives context-aware syntax highlighting. Anything not within `<% %>` tags uses the standard highlighting for HTML files, including `<script>` and `<style>` blocks. Active4D methods and constants declared with 'define' are accessible through the 'Goto Symbol' palette.
 
-* **Libraries (.a4l)** – In addition to syntax highlighting, symbol matching for methods is provided.
+* **Libraries (.a4l)** – Context-aware syntax highlighting. Methods and constants declared with 'define' are accessible through the 'Goto Symbol' palette.
 
-* **Active4D.ini** – Syntax highlighting and symbol matching.
+* **Active4D.ini** – Syntax highlighting. Options are accessible through the 'Goto Symbol' palette.
 
 ## Snippets
-Numerous snippets are provided for control structures, commands, and fusedocs. The best way to explore the snippets is by showing the snippet list in ST3.
+Numerous snippets are provided for control structures, commands, and fusedocs. The best way to explore the snippets is by showing the snippet list in ST3 (Tools > Snippets) from within Active4D code.
 
 ## Commands
 Several commands are available via keyboard equivalents:
