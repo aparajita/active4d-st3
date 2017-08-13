@@ -5,7 +5,7 @@
         ]
     },
 
-    { "keys": ["super+alt+b"], "command": "build_query", "context":
+    { "keys": ["ctrl+alt+b"], "command": "build_query", "context":
         [
             { "key": "selector", "operator": "equal", "operand": "source.a4d", "match_all": true }
         ]
