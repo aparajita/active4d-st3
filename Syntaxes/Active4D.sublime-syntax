@@ -99,14 +99,21 @@ contexts:
     - include: statement-expression
 
   keywords:
-    - match: '\b(?i)(?:import|include(?: into)?|require){{irb}}'
+    - match: '\b(?i)include(?: into)?{{irb}}'
       scope: keyword.control.import.a4d
+      push: function-args
+
+    - match: '\b(?i)require{{irb}}'
+      scope: keyword.control.import.a4d
+
+    - include: import
 
     - match: '\b(?i)(?:exit|return){{irb}}'
       scope: keyword.control.a4d
 
     - match: '\b(?i)(?:global){{irb}}'
       scope: keyword.other.a4d
+      push: function-args
 
     - match: '\b(?i)(?:(?:end )?library){{irb}}'
       scope: invalid.illegal.misplaced-library-keyword.a4d
@@ -733,6 +740,55 @@ contexts:
 
     - match: ''
       push: group-expression
+
+  #
+  # import
+  #
+  import:
+    - match: '\b(?i)import{{irb}}'
+      scope: keyword.control.import.a4d
+      push: after-import
+
+  after-import:
+    - include: allow-line-continuation
+
+    - match: \(
+      scope: punctuation.section.group.begin.a4d
+      set: import-filename
+
+    - include: not-end-of-statement
+    - include: unexpected-token
+
+  import-filename:
+    - include: allow-line-continuation
+
+    - match: ''
+      set:
+        - match: ;
+          scope: punctuation.separator.arguments.a4d
+          set:
+            - include: allow-line-continuation
+
+            - match: \*
+              scope: keyword.other.option.a4d
+              set:
+                - match: \)
+                  scope: punctuation.section.group.end.a4d
+                  pop: true
+
+                - include: not-end-of-statement
+                - include: unexpected-token
+
+            - include: not-end-of-statement
+            - include: unexpected-token
+
+        - match: \)
+          scope: punctuation.section.group.end.a4d
+          pop: true
+
+        - include: expression
+        - include: not-end-of-statement
+        - include: unexpected-token
 
   #
   # expression

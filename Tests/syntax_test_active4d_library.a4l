@@ -50,6 +50,8 @@ define(kTest; 7)
     write("foo")
 //  ^^^^^^^^^^^^ invalid.illegal.unexpected-token.a4d
 
+    import("foo")
+
     // hidden methods
     method "__load__"
 //          ^^^^^^^^ entity.name.function.hidden.a4d

@@ -86,6 +86,7 @@ contexts:
       scope: storage.type.library.end.a4d
       pop: true
 
+    - include: 'scope:source.a4d#import'
     - include: 'scope:source.a4d#define'
     - include: 'scope:source.a4d#method-definition'
 

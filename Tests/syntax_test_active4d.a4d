@@ -1413,6 +1413,27 @@ return ("foo")
 import("foo.bar")
 // <- keyword.control.import.a4d
 
+import("foo.bar"; *)
+//              ^ punctuation.separator.arguments.a4d
+//                ^ keyword.other.option.a4d
+
+import
+//    ^invalid.illegal.unexpected-end-of-statement.a4d
+
+import(
+//     ^invalid.illegal.unexpected-end-of-statement.a4d
+
+import("foo.bar"
+//              ^invalid.illegal.unexpected-end-of-statement.a4d
+
+// Line continuation is fine
+import(\\
+    "foo.bar" \\
+    )
+
+import("foo.bar"; foo)
+//                ^^^^ invalid.illegal.unexpected-token.a4d
+
 include("foo.a4d")
 // <- keyword.control.import.a4d
 
