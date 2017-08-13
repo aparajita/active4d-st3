@@ -2,6 +2,18 @@
 
 <html>
 
+<script>
+    var foo = 7;
+//  ^^^^^^^^^^^^ text.html.a4d source.js.embedded.html
+</script>
+
+<style>
+body {
+    padding: 10px;
+//  ^^^^^^^^^^^^^^ text.html.a4d source.css.embedded.html
+}
+</style>
+
 <%
 
 /***********************
@@ -268,7 +280,7 @@ _query{"foo"}
 /***********************
     parens
 ************************/
-$foo := (($bar / 2) + 1) * 7;
+$foo := (($bar / 2) + 1) * 7
 //      ^^^^^^^^^^^^^^^^ meta.group.a4d
 //      ^ punctuation.section.group.begin.a4d
 //       ^^^^^^^^^^ meta.group.a4d meta.group.a4d
@@ -1633,7 +1645,7 @@ if (true)
 //                                               ^^^ punctuation.section.embedded.begin.inside-block.a4d - source.a4d
 //                                                   ^^^^^^^^^^^ meta.block.if.a4d meta.block.for-each.a4d meta.field-reference.a4d
 //                                                               ^^ punctuation.section.embedded.end.inside-block.a4d
-//                                                                 ^^^^^^^ meta.tag.inline.any.html - meta.tag.after-embedded-asp.any.html
+//                                                                 ^^^^^^^ meta.tag.inline.any.html - meta.tag.after-embedded-a4d.any.html
 //                                                                 ^^ punctuation.definition.tag.begin.html
 //                                                                   ^^^^ entity.name.tag.inline.any.html
 //                                                                       ^ punctuation.definition.tag.end.html
@@ -1683,7 +1695,7 @@ if (true)
 //  ^^ meta.attribute-with-value.id.html entity.other.attribute-name.id.html
 //      ^^^^^ meta.attribute-with-value.id.html string.quoted.double.html meta.toc-list.id.html
 //            ^ punctuation.definition.tag.end.html
-//             ^^^^^^^ meta.tag.inline.any.html - meta.tag.after-embedded-asp.any.html
+//             ^^^^^^^ meta.tag.inline.any.html - meta.tag.after-embedded-a4d.any.html
 //             ^^ punctuation.definition.tag.begin.html
 //               ^^^^ entity.name.tag.inline.any.html
 //                   ^ punctuation.definition.tag.end.html
@@ -1701,7 +1713,7 @@ if (true)
 //                              ^^ meta.attribute-with-value.id.html entity.other.attribute-name.id.html
 //                                  ^^^^^ meta.attribute-with-value.id.html string.quoted.double.html meta.toc-list.id.html
 //                                        ^ punctuation.definition.tag.end.html
-//                                         ^^^^^^^ meta.tag.inline.any.html - meta.tag.after-embedded-asp.any.html
+//                                         ^^^^^^^ meta.tag.inline.any.html - meta.tag.after-embedded-a4d.any.html
 //                                         ^^ punctuation.definition.tag.begin.html
 //                                           ^^^^ entity.name.tag.inline.any.html
 //                                               ^ punctuation.definition.tag.end.html
