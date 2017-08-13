@@ -1053,6 +1053,8 @@ contexts:
   format-args:
     - meta_scope: meta.format-args.a4d
 
+    - include: allow-line-continuation
+
     - match: '\('
       scope: punctuation.section.format-args.begin.a4d
       set:
@@ -1657,8 +1659,6 @@ contexts:
       set: method-param-or-ref
 
   end-of-method-params:
-    - meta_scope: meta.method.parameters.a4d
-
     - match: \)
       scope: punctuation.section.parameters.end.a4d
       set: end-of-method-declaration
