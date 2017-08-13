@@ -1169,6 +1169,10 @@ foo bar
 
 end for
 
+// for loop can have an increment
+for ($i; size of array($names); 1; -1)
+end for
+
 // Line continuation can be used with for init
 
 for \\ // comment

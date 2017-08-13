@@ -422,6 +422,21 @@ contexts:
     - include: allow-line-continuation
     - include: not-end-of-statement
 
+    - match: ;
+      scope: punctuation.separator.for-init.a4d
+      set: for-increment
+
+    - match: \)
+      scope: meta.for-init.a4d punctuation.section.for-init.end.a4d
+      pop: true # after-for-init is next
+
+    - match: ''
+      push: parameter-expression
+
+  for-increment:
+    - include: allow-line-continuation
+    - include: not-end-of-statement
+
     - match: \)
       scope: meta.for-init.a4d punctuation.section.for-init.end.a4d
       pop: true # after-for-init is next
