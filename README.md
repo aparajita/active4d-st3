@@ -24,6 +24,6 @@ Several commands are available via keyboard equivalents:
 
 * **Insert = block** [super+shift+=] – Inserts the snippet `<%= %>`.
 
-* **Build query** [super+alt+b] – If the beginning of the current selection is on a query/query selection command, a * is added if necessary to the query command and a snippet is inserted on the next line, with the table used in the previous line filled in as the default.
+* **Build query** [ctrl+alt+b] – If the beginning of the current selection is on a query/query selection command, a * is added if necessary to the query command and a snippet is inserted on the next line, with the table used in the previous line filled in as the default.
 
 * **Open include** [super+ctrl+alt+i] – If the cursor is within a string, the string is joined to the path of the current file's directory, and if the resulting path is a file, the file is opened. Typically this is used to open the target of an **include** statement.
