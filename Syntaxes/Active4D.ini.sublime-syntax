@@ -73,5 +73,5 @@ contexts:
       scope: constant.numeric.a4d-ini
 
   constants:
-    - match: '\b(?i:true|false|yes|no)\b'
+    - match: '\b(?i:true|false|yes|no|as form)\b'
       scope: constant.language.a4d-ini
