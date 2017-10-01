@@ -1,7 +1,7 @@
-Active4D-Sublime
+Active4D-ST3
 ================
 
-**IMPORTANT**: This package only supports Sublime Text 3 build 3100 and later, which is currently a [dev build](https://www.sublimetext.com/3dev).
+**IMPORTANT**: This package only supports Sublime Text 3 build 3100 and later.
 
 ---
 
