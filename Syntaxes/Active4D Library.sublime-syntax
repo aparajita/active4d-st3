@@ -73,9 +73,6 @@ contexts:
     - match: ''
       set:
         - include: statements
-      with_prototype:
-        - match: '%>'
-          scope: invalid.illegal.unexpected-token.a4d
 
   # Valid statements in a library are: import, define, method definition, end library.
   # Anything else is an error.
